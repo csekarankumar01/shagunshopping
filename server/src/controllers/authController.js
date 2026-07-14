@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import User from '../models/User.js';
-import { sendTokenCookie, clearTokenCookie } from '../utils/token.js';
+import { generateToken } from '../utils/token.js';
 import { sendOtpEmail, sendWelcomeEmail } from '../utils/mailer.js';
 
 const publicUser = (u) => ({
@@ -78,8 +78,8 @@ export const verifyOtp = async (req, res, next) => {
     await user.save();
 
     sendWelcomeEmail(user.email, user.name); // fire and forget
-    sendTokenCookie(res, user._id);
-    res.json({ user: publicUser(user) });
+    const token = generateToken(user._id);
+    res.json({ user: publicUser(user), token });
   } catch (err) {
     next(err);
   }
@@ -113,8 +113,8 @@ export const login = async (req, res, next) => {
       await issueOtp(user);
       return res.json({ needsVerification: true, email: user.email });
     }
-    sendTokenCookie(res, user._id);
-    res.json({ user: publicUser(user) });
+    const token = generateToken(user._id);
+    res.json({ user: publicUser(user), token });
   } catch (err) {
     next(err);
   }
@@ -122,7 +122,6 @@ export const login = async (req, res, next) => {
 
 // POST /api/auth/logout
 export const logout = (req, res) => {
-  clearTokenCookie(res);
   res.json({ message: 'Logged out' });
 };
 

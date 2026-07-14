@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
   // email is not yet verified -- the UI then routes to the OTP screen.
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    if (data.token) localStorage.setItem('jwt', data.token);
     if (data.user) setUser(data.user);
     return data;
   };
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOtp = async (email, otp) => {
     const { data } = await api.post('/auth/verify-otp', { email, otp });
+    if (data.token) localStorage.setItem('jwt', data.token);
     setUser(data.user);
     return data.user;
   };
@@ -43,6 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await api.post('/auth/logout');
+    localStorage.removeItem('jwt');
     setUser(null);
   };
 
