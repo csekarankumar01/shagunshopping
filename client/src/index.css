@@ -14,7 +14,8 @@
   --color-porcelain: #ffffff;
   --color-ink: #131313;
   --color-muted: #6b6b6b;
-  --color-mulberry: #ec1c7d;      /* signature hot magenta */
+  --color-mulberry: #ec1c7d;
+  /* signature hot magenta */
   --color-mulberry-deep: #c60f66;
   --color-blush: #ffe6f1;
   --color-sage: #14875a;
@@ -28,7 +29,9 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+  }
 
   body {
     @apply bg-porcelain text-ink font-sans antialiased;
@@ -37,14 +40,18 @@
   /* Force every display heading to the punchy sans, tight and heavy.
      This overrides any serif styling left in components. */
   .font-display,
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-display) !important;
     font-style: normal !important;
     letter-spacing: -0.02em;
     font-weight: 800;
   }
 
-  ::selection { @apply bg-blush text-ink; }
+  ::selection {
+    @apply bg-blush text-ink;
+  }
 
   :focus-visible {
     outline: 2px solid var(--color-mulberry);
@@ -71,17 +78,21 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-extrabold uppercase tracking-wide transition-all disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:bg-mulberry hover:text-white;
   }
 
-  .btn-sm { @apply px-4 py-2 text-xs; }
+  .btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
 
   .input {
     @apply w-full rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
   }
 
-  .label { @apply mb-1 block text-xs font-bold text-ink; }
+  .label {
+    @apply mb-1 block text-xs font-bold text-ink;
+  }
 
   /* Flat, crisp product cards with a hairline and a lift on hover */
   .card {
-    @apply rounded-xl border border-line bg-white transition-shadow hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)];
+    @apply rounded-xl border border-line bg-white transition-shadow hover:shadow-[0_8px_30px_rgba(0, 0, 0, 0.06)];
   }
 
   .chip {
@@ -91,14 +102,29 @@
 
 /* Brand marquee (the signature "counter" ticker) */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-.animate-marquee { animation: marquee 36s linear infinite; }
-.marquee-mask:hover .animate-marquee { animation-play-state: paused; }
+.animate-marquee {
+  animation: marquee 36s linear infinite;
+}
+
+.marquee-mask:hover .animate-marquee {
+  animation-play-state: paused;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee { animation: none; }
-  html { scroll-behavior: auto; }
+  .animate-marquee {
+    animation: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
