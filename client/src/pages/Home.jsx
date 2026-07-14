@@ -27,54 +27,24 @@ const Home = () => {
   return (
     <>
       {/* Hero */}
-      <section className="container-page grid items-center gap-12 py-14 lg:grid-cols-2 lg:py-20">
-        <div>
-          <p className="eyebrow">Authorised multi-brand beauty store</p>
-          <h1 className="font-display mt-4 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-            Genuine beauty,
+      <section className="relative w-full h-[70vh] min-h-[500px] max-h-[800px] overflow-hidden bg-ink text-white flex items-center">
+        <img
+          src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=2000"
+          alt="Campaign makeup"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+        />
+        <div className="container-page relative z-10">
+          <p className="eyebrow text-porcelain mb-4">India's leading makeup brand</p>
+          <h1 className="font-display text-6xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[100px]">
+            Unleash your
             <br />
-            <em className="text-mulberry">below MRP.</em>
+            <span className="text-mulberry">boldest</span> self.
           </h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-muted">
-            Skincare, haircare and makeup from {BRANDS.length} trusted brands —
-            the same counter you know, now delivered to your door.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/shop" className="btn-primary">
-              Shop bestsellers <ArrowRight size={16} />
-            </Link>
-            <Link to="/shop?sort=newest" className="btn-ghost">
-              New arrivals
+          <div className="mt-10">
+            <Link to="/shop" className="btn-primary text-base px-10 py-4">
+              Shop bestsellers <ArrowRight size={18} className="ml-2" />
             </Link>
           </div>
-          <div className="mt-8 flex flex-wrap gap-2">
-            <TrustChip icon={BadgeCheck}>100% genuine products</TrustChip>
-            <TrustChip icon={Banknote}>Cash on delivery</TrustChip>
-            <TrustChip icon={Truck}>Free shipping over ₹{FREE_SHIPPING_ABOVE}</TrustChip>
-          </div>
-        </div>
-
-        {/* Swatch composition -- looks great with zero product photos */}
-        <div className="relative mx-auto h-80 w-full max-w-md sm:h-96" aria-hidden="true">
-          <div
-            className="absolute left-0 top-6 h-64 w-52 rotate-[-6deg] rounded-3xl shadow-xl shadow-blush sm:h-72 sm:w-60"
-            style={{ background: CATEGORY_META.Makeup.gradient }}
-          />
-          <div
-            className="absolute right-0 top-0 h-64 w-52 rotate-[5deg] rounded-3xl shadow-xl shadow-blush sm:h-72 sm:w-60"
-            style={{ background: CATEGORY_META.Skincare.gradient }}
-          />
-          <div className="card absolute bottom-2 left-1/2 w-64 -translate-x-1/2 p-4 shadow-lg">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted">Pilgrim</p>
-            <p className="text-sm font-semibold">10% Niacinamide Face Serum</p>
-            <p className="mt-1 text-lg font-extrabold">
-              ₹476 <s className="text-sm font-normal text-muted">₹595</s>{' '}
-              <span className="text-xs font-bold text-sage">Save 20%</span>
-            </p>
-          </div>
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sage px-4 py-1.5 text-xs font-bold text-white shadow">
-            Below MRP, always
-          </span>
         </div>
       </section>
 
@@ -82,21 +52,20 @@ const Home = () => {
 
       {/* Categories */}
       <section className="container-page py-16">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <p className="eyebrow">Browse</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold">Shop by category</h2>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <h2 className="font-display text-center text-4xl font-black uppercase tracking-tight mb-10">Shop by category</h2>
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
           {Object.entries(CATEGORY_META).map(([name, meta]) => (
             <Link
               key={name}
               to={`/shop?category=${encodeURIComponent(name)}`}
-              className="group relative flex h-28 items-end overflow-hidden rounded-2xl p-4 transition-transform hover:-translate-y-0.5"
-              style={{ background: meta.gradient }}
+              className="group flex flex-col items-center gap-4 transition-transform hover:-translate-y-1"
             >
-              <span className="font-display text-lg italic text-ink/80 transition-colors group-hover:text-ink">
+              <div
+                className="flex w-32 h-32 md:w-36 md:h-36 items-center justify-center rounded-full shadow-lg border border-line"
+                style={{ background: meta.gradient }}
+              >
+              </div>
+              <span className="font-display text-sm font-black uppercase tracking-widest text-ink text-center group-hover:text-mulberry transition-colors">
                 {name}
               </span>
             </Link>
@@ -106,12 +75,9 @@ const Home = () => {
 
       {/* Featured products */}
       <section className="container-page pb-16">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <p className="eyebrow">Handpicked</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold">Counter favourites</h2>
-          </div>
-          <Link to="/shop" className="text-sm font-bold text-mulberry hover:text-mulberry-deep">
+        <div className="mb-10 text-center">
+          <h2 className="font-display text-4xl font-black uppercase tracking-tight">Trending Now</h2>
+          <Link to="/shop" className="mt-3 inline-block text-xs font-extrabold uppercase tracking-widest text-mulberry hover:text-mulberry-deep">
             View all →
           </Link>
         </div>
@@ -135,8 +101,8 @@ const Home = () => {
         <div className="container-page grid gap-10 py-16 lg:grid-cols-2 lg:items-center">
           <div>
             <p className="eyebrow">{SHOP_YEARS} years of trust</p>
-            <h2 className="font-display mt-3 text-4xl font-semibold leading-tight">
-              From our counter <em className="text-mulberry">to your doorstep.</em>
+            <h2 className="font-display mt-3 text-5xl font-black uppercase tracking-tight leading-[0.95]">
+              From our store <br /><span className="text-mulberry">to your door.</span>
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted">
               {SHOP_NAME} is run by the same family that has served customers

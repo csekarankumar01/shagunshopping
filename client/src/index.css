@@ -2,28 +2,26 @@
 @import 'tailwindcss';
 
 /*
-  ShagunShopping — bold beauty-commerce theme
-  Inspired by the energy of modern Indian makeup D2C stores:
-  crisp white ground, near-black ink, one loud magenta accent,
-  and a single punchy sans (Archivo) used EVERYWHERE — no serif,
-  so headlines read like a campaign, never like a book.
+  ShagunShopping design tokens — bold beauty-commerce direction
+  (inspired by modern Indian makeup D2C stores like Swiss Beauty):
+  crisp white ground, near-black ink, signature hot pink for CTAs and
+  accents, clean gray hairlines. Display face: Archivo, a punchy
+  geometric sans — headlines feel like a beauty campaign, not a book.
 
-  Token names are unchanged, so every component re-skins itself.
+  The token NAMES are unchanged, so every component re-skins automatically.
 */
 @theme {
   --color-porcelain: #ffffff;
-  --color-ink: #131313;
-  --color-muted: #6b6b6b;
-  --color-mulberry: #ec1c7d;
-  /* signature hot magenta */
-  --color-mulberry-deep: #c60f66;
-  --color-blush: #ffe6f1;
-  --color-sage: #14875a;
-  --color-sage-soft: #e3f6ec;
-  --color-gold: #e6a015;
-  --color-line: #ededed;
+  --color-ink: #141414;
+  --color-muted: #6f6f6f;
+  --color-mulberry: #ee2a7b;
+  --color-mulberry-deep: #c9135f;
+  --color-blush: #fde7f1;
+  --color-sage: #1d8a58;
+  --color-sage-soft: #e4f6ec;
+  --color-gold: #e9a11b;
+  --color-line: #ececec;
 
-  /* One typeface family for the whole store */
   --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 }
@@ -37,16 +35,9 @@
     @apply bg-porcelain text-ink font-sans antialiased;
   }
 
-  /* Force every display heading to the punchy sans, tight and heavy.
-     This overrides any serif styling left in components. */
-  .font-display,
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-display) !important;
-    font-style: normal !important;
+  /* Punchy campaign-style headlines */
+  .font-display {
     letter-spacing: -0.02em;
-    font-weight: 800;
   }
 
   ::selection {
@@ -66,16 +57,15 @@
   }
 
   .eyebrow {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.2em] text-mulberry;
+    @apply text-[11px] font-extrabold uppercase tracking-[0.22em] text-mulberry;
   }
 
-  /* Squarer, louder, uppercase buttons — the beauty-store signature */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-extrabold uppercase tracking-wide transition-all disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-extrabold uppercase tracking-wide transition-all disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:bg-mulberry hover:text-white;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:text-mulberry;
   }
 
   .btn-sm {
@@ -83,16 +73,15 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
+    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
   }
 
   .label {
     @apply mb-1 block text-xs font-bold text-ink;
   }
 
-  /* Flat, crisp product cards with a hairline and a lift on hover */
   .card {
-    @apply rounded-xl border border-line bg-white transition-shadow hover:shadow-[0_8px_30px_rgba(0, 0, 0, 0.06)];
+    @apply rounded-xl border border-line bg-white;
   }
 
   .chip {

@@ -17,9 +17,9 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-porcelain/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-white">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-6">
-        <Link to="/" className="font-display text-2xl font-bold italic tracking-tight text-ink">
+        <Link to="/" className="font-display text-2xl font-black uppercase tracking-widest text-ink">
           {SHOP_NAME}
         </Link>
 
@@ -39,12 +39,12 @@ const Navbar = () => {
         <nav className="ml-auto flex items-center gap-1 sm:gap-2">
           <NavLink
             to="/about"
-            className="hidden px-2 text-sm font-bold text-muted transition-colors hover:text-mulberry lg:inline-flex"
+            className="hidden px-2 text-xs font-extrabold uppercase tracking-widest text-muted transition-colors hover:text-mulberry lg:inline-flex"
           >
             Our story
           </NavLink>
-          <NavLink to="/shop" className="btn-ghost btn-sm hidden sm:inline-flex">
-            Shop
+          <NavLink to="/shop" className="hidden px-2 text-xs font-extrabold uppercase tracking-widest text-muted transition-colors hover:text-mulberry sm:inline-flex">
+            Shop All
           </NavLink>
           <Link
             to="/shop"

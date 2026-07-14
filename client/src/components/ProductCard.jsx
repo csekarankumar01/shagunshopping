@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { ShoppingBag } from 'lucide-react';
 import Swatch from './Swatch';
 import Price from './Price';
 import RatingStars from './RatingStars';
@@ -20,7 +19,7 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/product/${product._id}`}
-      className="card group flex flex-col overflow-hidden transition-shadow hover:shadow-lg hover:shadow-blush/60"
+      className="card group flex flex-col overflow-hidden transition-shadow hover:shadow-lg hover:shadow-mulberry/10"
     >
       <div className="relative aspect-square overflow-hidden">
         <Swatch product={product} className="transition-transform duration-300 group-hover:scale-[1.03]" />
@@ -40,17 +39,16 @@ const ProductCard = ({ product }) => {
         {product.numReviews > 0 && (
           <RatingStars rating={product.rating} count={product.numReviews} />
         )}
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+        <div className="mt-auto pt-2">
           <Price mrp={product.mrp} price={product.price} />
-          <button
-            onClick={add}
-            disabled={out}
-            aria-label={`Add ${product.name} to bag`}
-            className="rounded-full bg-mulberry p-2.5 text-white transition-colors hover:bg-mulberry-deep disabled:opacity-40"
-          >
-            <ShoppingBag size={16} />
-          </button>
         </div>
+        <button
+          onClick={add}
+          disabled={out}
+          className="mt-3 w-full rounded-lg bg-mulberry py-3 text-[11px] font-extrabold uppercase tracking-widest text-white transition-colors hover:bg-mulberry-deep disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {out ? 'Out of Stock' : 'Add to Cart'}
+        </button>
       </div>
     </Link>
   );
