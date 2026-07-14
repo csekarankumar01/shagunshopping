@@ -15,7 +15,7 @@ export const SHOP_CONTACT = {
 // The brands stocked at the counter (used for the marquee + fallback filters)
 export const BRANDS = [
   'Lotus Herbals',
-  'Fixderma',
+  'FixDERMA',
   'Pilgrim',
   'Mitvana',
   'Dot & Key',
@@ -25,7 +25,7 @@ export const BRANDS = [
   'Swiss Beauty',
   'Insight',
   'Deconstruct',
-  'Dr Su',
+  'Dr. Su',
   'Ras Luxury',
   'Oriflame',
   'Komeo Wellness',

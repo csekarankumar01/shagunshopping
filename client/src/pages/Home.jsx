@@ -116,7 +116,7 @@ const Home = () => {
             {[
               { icon: BadgeCheck, title: 'Genuine, guaranteed', text: 'Sourced only from authorised distributors.' },
               { icon: Banknote, title: 'Pay how you like', text: 'UPI, cards, netbanking or cash on delivery.' },
-              { icon: Truck, title: 'Pan-India shipping', text: `Free delivery on orders over ₹${FREE_SHIPPING_ABOVE}.` },
+              { icon: Truck, title: 'NCR Delivery', text: `Free delivery on orders over ₹${FREE_SHIPPING_ABOVE}.` },
             ].map(({ icon: Icon, title, text }) => (
               <div key={title} className="rounded-2xl bg-porcelain p-5">
                 <Icon size={22} className="text-mulberry" />
