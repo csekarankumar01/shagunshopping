@@ -1,33 +1,8 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-/**
- * Email delivery for ShagunShopping.
- *
- * Configure SMTP in .env (works great with a Gmail App Password):
- *   SMTP_HOST=smtp.gmail.com
- *   SMTP_PORT=465
- *   SMTP_USER=shagunshopping.meerut@gmail.com
- *   SMTP_PASS=<16-char app password>
- *   MAIL_FROM="ShagunShopping <shagunshopping.meerut@gmail.com>"
- *
- * If SMTP is not configured, emails are printed to the server console
- * instead (so OTPs are still testable in development).
- */
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-let transporter = null;
-const smtpConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
-
-const getTransporter = () => {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: Number(process.env.SMTP_PORT || 465) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-  }
-  return transporter;
-};
+const mailConfigured = () => !!process.env.RESEND_API_KEY;
 
 const SHOP = () => process.env.SHOP_NAME || 'ShagunShopping';
 const ADDRESS = '1, Saraswati Vihar, Rohta Road, Meerut — 250001';
@@ -62,18 +37,27 @@ const shell = (title, bodyHtml) => `
 /** Fire-and-forget sender; never throws into request flow. */
 export const sendMail = async ({ to, subject, html }) => {
   try {
-    if (!smtpConfigured()) {
+    if (!mailConfigured()) {
       console.log(`[mail:dev] To: ${to} | Subject: ${subject}`);
       const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       console.log(`[mail:dev] ${text.slice(0, 300)}...`);
       return;
     }
-    await getTransporter().sendMail({
-      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+    
+    // Resend requires 'onboarding@resend.dev' if you don't have a verified custom domain.
+    // Note: onboarding@resend.dev can ONLY send emails to your own registered email address.
+    const fromAddress = process.env.MAIL_FROM || 'ShagunShopping <onboarding@resend.dev>';
+    
+    const { error } = await resend.emails.send({
+      from: fromAddress,
       to,
       subject,
       html,
     });
+    
+    if (error) {
+      console.error('Email send failed:', error.message);
+    }
   } catch (err) {
     console.error('Email send failed:', err.message);
   }
