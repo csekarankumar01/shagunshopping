@@ -19,7 +19,7 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-6">
-        <Link to="/" className="font-display text-2xl font-black uppercase tracking-widest text-ink">
+        <Link to="/" className="font-display text-2xl font-black tracking-widest text-ink">
           {SHOP_NAME}
         </Link>
 

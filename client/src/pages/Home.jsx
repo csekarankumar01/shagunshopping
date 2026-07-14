@@ -34,7 +34,7 @@ const Home = () => {
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
         <div className="container-page relative z-10">
-          <p className="eyebrow text-porcelain mb-4">India's leading makeup brand</p>
+          <p className="eyebrow text-porcelain mb-4">India's leading multi brand store</p>
           <h1 className="font-display text-6xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[100px]">
             Unleash your
             <br />
