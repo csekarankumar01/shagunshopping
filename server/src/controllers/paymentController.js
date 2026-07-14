@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import { sendOrderConfirmationEmail } from '../utils/mailer.js';
+import { sendOrderConfirmationEmail, sendOwnerNewOrderEmail } from '../utils/mailer.js';
 
 let client = null;
 
@@ -77,6 +77,7 @@ export const verifyPayment = async (req, res, next) => {
     await order.save();
 
     sendOrderConfirmationEmail(req.user.email, req.user.name, order); // fire and forget
+    sendOwnerNewOrderEmail(order, req.user); // owner alert, fire and forget
     res.json({ order });
   } catch (err) {
     next(err);

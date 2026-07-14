@@ -2,7 +2,12 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import { computeTotals } from '../utils/pricing.js';
 import { getRazorpay } from './paymentController.js';
-import { sendOrderConfirmationEmail } from '../utils/mailer.js';
+import {
+  sendOrderConfirmationEmail,
+  sendOwnerNewOrderEmail,
+  sendOrderStatusEmail,
+  sendOwnerCancelledEmail,
+} from '../utils/mailer.js';
 
 /**
  * Atomically decrement stock for every item. Each update only matches if
@@ -80,6 +85,7 @@ export const createOrder = async (req, res, next) => {
         status: 'processing',
       });
       sendOrderConfirmationEmail(req.user.email, req.user.name, order); // fire and forget
+      sendOwnerNewOrderEmail(order, req.user); // owner alert, fire and forget
       return res.status(201).json({ order });
     }
 
@@ -161,6 +167,7 @@ export const cancelOrder = async (req, res, next) => {
     order.status = 'cancelled';
     await order.save();
     // Note: refunds for paid orders are issued manually from the Razorpay dashboard.
+    sendOwnerCancelledEmail(order, req.user); // fire and forget
     res.json({ order });
   } catch (err) {
     next(err);
@@ -194,7 +201,7 @@ export const adminListOrders = async (req, res, next) => {
 export const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     order.status = status;
@@ -207,6 +214,11 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
     await order.save();
+
+    // Keep the customer in the loop (shipped / delivered / cancelled)
+    if (order.user?.email && ['shipped', 'delivered', 'cancelled'].includes(status)) {
+      sendOrderStatusEmail(order.user.email, order.user.name, order); // fire and forget
+    }
     res.json({ order });
   } catch (err) {
     next(err);
