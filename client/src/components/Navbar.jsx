@@ -36,7 +36,7 @@ const Navbar = () => {
           </div>
         </form>
 
-        <nav className="ml-auto flex items-center gap-1 sm:gap-2">
+        <nav className="ml-auto hidden items-center gap-1 md:flex sm:gap-2">
           <NavLink
             to="/about"
             className="hidden px-2 text-xs font-extrabold uppercase tracking-widest text-muted transition-colors hover:text-mulberry lg:inline-flex"

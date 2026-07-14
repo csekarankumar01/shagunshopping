@@ -53,12 +53,12 @@ const Home = () => {
       {/* Categories */}
       <section className="container-page py-16">
         <h2 className="font-display text-center text-4xl font-black uppercase tracking-tight mb-10">Shop by category</h2>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-3 lg:grid-cols-6">
           {Object.entries(CATEGORY_META).map(([name, meta]) => (
             <Link
               key={name}
               to={`/shop?category=${encodeURIComponent(name)}`}
-              className="group flex flex-col items-center gap-4 transition-transform hover:-translate-y-1"
+              className="group flex flex-col items-center gap-4 transition-transform hover:-translate-y-1 min-w-[140px] snap-center md:min-w-0"
             >
               <div
                 className="flex w-32 h-32 md:w-36 md:h-36 items-center justify-center rounded-full shadow-lg border border-line"
@@ -88,9 +88,11 @@ const Home = () => {
             No featured products yet — mark some as featured from the admin panel.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden sm:gap-6 md:grid md:grid-cols-2 lg:grid-cols-4">
             {featured.map((p) => (
-              <ProductCard key={p._id} product={p} />
+              <div key={p._id} className="min-w-[75vw] snap-center md:min-w-0">
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         )}

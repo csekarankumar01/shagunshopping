@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import { RequireAuth, RequireAdmin } from './components/Guards';
 
@@ -36,7 +37,7 @@ const App = () => (
   <div className="flex min-h-screen flex-col">
     <ScrollToTop />
     <Navbar />
-    <main className="flex-1">
+    <main className="flex-1 pb-16 md:pb-0">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
@@ -91,6 +92,7 @@ const App = () => (
       </Routes>
     </main>
     <Footer />
+    <BottomNav />
   </div>
 );
 

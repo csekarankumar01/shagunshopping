@@ -57,11 +57,11 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep active:scale-[0.98];
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:text-mulberry;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:text-mulberry active:scale-[0.98];
   }
 
   .btn-sm {

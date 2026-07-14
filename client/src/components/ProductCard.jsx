@@ -45,7 +45,7 @@ const ProductCard = ({ product }) => {
         <button
           onClick={add}
           disabled={out}
-          className="mt-3 w-full rounded-lg bg-mulberry py-3 text-[11px] font-extrabold uppercase tracking-widest text-white transition-colors hover:bg-mulberry-deep disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-3 w-full rounded-lg bg-mulberry py-3 text-[11px] font-extrabold uppercase tracking-widest text-white transition-all duration-200 hover:bg-mulberry-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {out ? 'Out of Stock' : 'Add to Cart'}
         </button>
