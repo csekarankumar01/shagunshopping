@@ -43,9 +43,7 @@ export const sendMail = async ({ to, subject, html }) => {
       return;
     }
     
-    // Resend requires 'onboarding@resend.dev' if you don't have a verified custom domain.
-    // Note: onboarding@resend.dev can ONLY send emails to your own registered email address.
-    const fromAddress = process.env.MAIL_FROM || 'ShagunShopping <onboarding@resend.dev>';
+    const fromAddress = process.env.MAIL_FROM || 'ShagunShopping <support@shagunshopping.com>';
     
     const { error } = await resend.emails.send({
       from: fromAddress,
