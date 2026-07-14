@@ -1,28 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 /*
-  ShagunShopping design tokens — bold beauty-commerce direction
-  (inspired by modern Indian makeup D2C stores like Swiss Beauty):
-  crisp white ground, near-black ink, signature hot pink for CTAs and
-  accents, clean gray hairlines. Display face: Archivo, a punchy
-  geometric sans — headlines feel like a beauty campaign, not a book.
-
-  The token NAMES are unchanged, so every component re-skins automatically.
+  ShagunShopping design tokens
+  A beauty-editorial direction: blush porcelain ground, plum ink,
+  mulberry accent (CTAs), herbal sage (genuine/success), gold (ratings).
+  Display face: Bodoni Moda (the fashion-magazine didone).
 */
 @theme {
-  --color-porcelain: #ffffff;
-  --color-ink: #141414;
-  --color-muted: #6f6f6f;
-  --color-mulberry: #ee2a7b;
-  --color-mulberry-deep: #c9135f;
-  --color-blush: #fde7f1;
-  --color-sage: #1d8a58;
-  --color-sage-soft: #e4f6ec;
-  --color-gold: #e9a11b;
-  --color-line: #ececec;
+  --color-porcelain: #fbf7f6;
+  --color-ink: #26191f;
+  --color-muted: #7d6a72;
+  --color-mulberry: #8a2d52;
+  --color-mulberry-deep: #6b2140;
+  --color-blush: #f3dad3;
+  --color-sage: #52705c;
+  --color-sage-soft: #e3ece5;
+  --color-gold: #ad8a2d;
+  --color-line: #ebdcd9;
 
-  --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Bodoni Moda', 'Didot', 'Bodoni MT', serif;
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -33,11 +30,6 @@
 
   body {
     @apply bg-porcelain text-ink font-sans antialiased;
-  }
-
-  /* Punchy campaign-style headlines */
-  .font-display {
-    letter-spacing: -0.02em;
   }
 
   ::selection {
@@ -57,15 +49,15 @@
   }
 
   .eyebrow {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.22em] text-mulberry;
+    @apply text-[11px] font-bold uppercase tracking-[0.22em] text-mulberry;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:text-mulberry;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-white text-ink hover:border-mulberry hover:text-mulberry;
   }
 
   .btn-sm {
@@ -73,7 +65,7 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
+    @apply w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
   }
 
   .label {
@@ -81,7 +73,7 @@
   }
 
   .card {
-    @apply rounded-xl border border-line bg-white;
+    @apply rounded-2xl border border-line bg-white;
   }
 
   .chip {
