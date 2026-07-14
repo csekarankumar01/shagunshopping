@@ -1,29 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
 @import 'tailwindcss';
 
 /*
-  ShagunShopping design tokens — bold beauty-commerce direction
-  (inspired by modern Indian makeup D2C stores like Swiss Beauty):
-  crisp white ground, near-black ink, signature hot pink for CTAs and
-  accents, clean gray hairlines. Display face: Archivo, a punchy
-  geometric sans — headlines feel like a beauty campaign, not a book.
-
-  The token NAMES are unchanged, so every component re-skins automatically.
+  ShagunShopping design tokens — True Swiss Beauty Monochrome
+  Crisp white backgrounds, solid black text and CTAs, subtle grey borders.
+  Headings: Roboto. Body: Nunito Sans.
 */
 @theme {
   --color-porcelain: #ffffff;
-  --color-ink: #141414;
+  --color-ink: #111111;
   --color-muted: #6f6f6f;
-  --color-mulberry: #ee2a7b;
-  --color-mulberry-deep: #c9135f;
-  --color-blush: #fde7f1;
+  --color-mulberry: #111111;
+  --color-mulberry-deep: #333333;
+  --color-blush: #f9f9f9;
   --color-sage: #1d8a58;
   --color-sage-soft: #e4f6ec;
   --color-gold: #e9a11b;
-  --color-line: #ececec;
+  --color-line: #e8e8e1;
 
-  --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
