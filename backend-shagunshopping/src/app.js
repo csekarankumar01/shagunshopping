@@ -1,0 +1,98 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import mongoSanitize from 'express-mongo-sanitize';
+import { handleRazorpayWebhook } from './controllers/paymentController.js';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
+
+import authRoutes from './routes/authRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import { notFound, errorHandler } from './middleware/error.js';
+
+const app = express();
+
+// Behind a proxy (Render/Railway/Nginx) so secure cookies and IPs work correctly
+app.set('trust proxy', 1);
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.CLIENT_URL,
+        'https://shagunshopping.com',
+        'https://www.shagunshopping.com',
+        'http://shagunshopping.com',
+        'http://localhost:5173',
+      ].filter(Boolean);
+      // Vite bumps to 5174/5175/... when 5173 is already taken — allow those in dev
+      const isLocalVite =
+        process.env.NODE_ENV !== 'production' &&
+        /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin || '');
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        isLocalVite
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+// Razorpay webhook needs the RAW body for signature verification, so it is
+// mounted before the JSON parser (and therefore also before sanitize/limits).
+app.post('/api/payment/webhook', express.raw({ type: '*/*' }), handleRazorpayWebhook);
+
+app.use(express.json({ limit: '100kb' }));
+app.use(cookieParser());
+app.use(mongoSanitize()); // strips $ and . keys to block NoSQL injection
+
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
+
+// Brute-force protection on sensitive routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many attempts, please try again in a few minutes' },
+});
+app.use('/api/auth', authLimiter);
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', apiLimiter);
+
+// Uploaded product photos
+const uploadsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'uploads');
+app.use('/uploads', express.static(uploadsDir, { maxAge: '7d', immutable: true }));
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/upload', uploadRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;
