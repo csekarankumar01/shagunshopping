@@ -40,12 +40,12 @@ export const SHIPPING_FEE = 49;
 
 // Category swatches: cosmetic-texture gradients used when a product has no photo
 export const CATEGORY_META = {
-  Skincare: { image: 'https://images.unsplash.com/photo-1570194065650-d12eb60683a5?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#F8DFD6 0%,#EDB9A8 60%,#E4A093 100%)' },
-  Haircare: { image: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#EBEFE3 0%,#C7D2B2 60%,#AFBF97 100%)' },
-  Makeup: { image: 'https://images.unsplash.com/photo-1512496115851-a1c8f1307e5e?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#F3CBDB 0%,#D68BAC 55%,#B9648C 100%)' },
-  'Body Care': { image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#F4E7D7 0%,#E0C4A2 60%,#D0AB84 100%)' },
-  Fragrance: { image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#ECE2F2 0%,#CDB6DE 60%,#B99FD1 100%)' },
-  Wellness: { image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400', gradient: 'linear-gradient(135deg,#E2EEE5 0%,#B7D2BF 60%,#9CC0A7 100%)' },
+  Skincare: { image: '/categories/skincare.png', gradient: 'linear-gradient(135deg,#F8DFD6 0%,#EDB9A8 60%,#E4A093 100%)' },
+  Haircare: { image: '/categories/haircare.png', gradient: 'linear-gradient(135deg,#EBEFE3 0%,#C7D2B2 60%,#AFBF97 100%)' },
+  Makeup: { image: '/categories/makeup.png', gradient: 'linear-gradient(135deg,#F3CBDB 0%,#D68BAC 55%,#B9648C 100%)' },
+  'Body Care': { image: '/categories/bodycare.png', gradient: 'linear-gradient(135deg,#F4E7D7 0%,#E0C4A2 60%,#D0AB84 100%)' },
+  Fragrance: { image: '/categories/fragrance.png', gradient: 'linear-gradient(135deg,#ECE2F2 0%,#CDB6DE 60%,#B99FD1 100%)' },
+  Wellness: { image: '/categories/wellness.png', gradient: 'linear-gradient(135deg,#E2EEE5 0%,#B7D2BF 60%,#9CC0A7 100%)' },
 };
 
 export const CATEGORIES = Object.keys(CATEGORY_META);
