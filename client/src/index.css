@@ -27,12 +27,15 @@
   html {
     scroll-behavior: smooth;
   }
+
   body {
     @apply bg-porcelain text-ink font-sans antialiased;
   }
+
   ::selection {
     @apply bg-blush text-ink;
   }
+
   :focus-visible {
     outline: 2px solid var(--color-mulberry);
     outline-offset: 2px;
@@ -44,27 +47,35 @@
   .container-page {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
+
   .eyebrow {
     @apply text-[11px] font-bold uppercase tracking-[0.22em] text-mulberry;
   }
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep;
   }
+
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-white text-ink hover:border-mulberry hover:text-mulberry;
   }
+
   .btn-sm {
     @apply px-4 py-2 text-xs;
   }
+
   .input {
     @apply w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
   }
+
   .label {
     @apply mb-1 block text-xs font-bold text-ink;
   }
+
   .card {
     @apply rounded-2xl border border-line bg-white;
   }
+
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink;
   }
@@ -75,20 +86,25 @@
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
 }
+
 .animate-marquee {
   animation: marquee 36s linear infinite;
 }
+
 .marquee-mask:hover .animate-marquee {
   animation-play-state: paused;
 }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
   }
+
   html {
     scroll-behavior: auto;
   }
