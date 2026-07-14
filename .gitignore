@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+*.log
+
+# Uploaded product photos (runtime data)
+server/uploads/*
+!server/uploads/.gitkeep

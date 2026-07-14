@@ -1,0 +1,16 @@
+{
+  "name": "shagunshopping",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ShagunShopping — MERN e-commerce store for a multi-brand cosmetic shop (India). React + Vite storefront, Express/MongoDB API, Razorpay payments.",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "seed": "npm run seed --prefix server",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

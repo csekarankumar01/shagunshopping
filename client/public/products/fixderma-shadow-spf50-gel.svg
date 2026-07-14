@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Fixderma Shadow SPF 50+ Sunscreen Gel">
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="hsl(205 40% 96%)"/>
+      <stop offset="1" stop-color="hsl(205 34% 88%)"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="white" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(205 42% 80%)"/>
+      <stop offset="0.5" stop-color="hsl(205 48% 66%)"/>
+      <stop offset="1" stop-color="hsl(205 44% 54%)"/>
+    </linearGradient>
+    <linearGradient id="bodyDeep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(205 40% 46%)"/>
+      <stop offset="1" stop-color="hsl(205 42% 30%)"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(205 28% 34%)"/>
+      <stop offset="1" stop-color="hsl(205 30% 20%)"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9dfca"/><stop offset="0.5" stop-color="#c9b489"/><stop offset="1" stop-color="#a68a55"/>
+    </linearGradient>
+    <radialGradient id="pan" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="hsl(205 60% 84%)"/>
+      <stop offset="0.6" stop-color="hsl(205 55% 68%)"/>
+      <stop offset="1" stop-color="hsl(205 50% 56%)"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <rect width="800" height="800" fill="url(#glow)"/>
+  <circle cx="400" cy="430" r="252" fill="none" stroke="hsl(205 30% 55% / 0.28)" stroke-width="1.6"/>
+  <circle cx="633" cy="222" r="4" fill="hsl(205 45% 55% / 0.5)"/>
+  <circle cx="163" cy="286" r="3" fill="hsl(205 45% 55% / 0.45)"/>
+  <circle cx="192" cy="596" r="4" fill="hsl(205 45% 55% / 0.4)"/>
+  <ellipse cx="400" cy="648" rx="196" ry="26" fill="hsl(205 30% 30% / 0.16)"/>
+
+  <text x="400" y="98" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="34" fill="hsl(205 25% 26% / 0.85)">Fixderma</text>
+  <rect x="356" y="116" width="88" height="2" rx="1" fill="hsl(205 30% 40% / 0.4)"/>
+
+    <rect x="322" y="556" width="156" height="62" rx="16" fill="url(#cap)"/>
+    <path d="M340 244 L460 244 L472 556 L328 556 Z" fill="url(#body)"/>
+    <rect x="334" y="220" width="132" height="28" rx="9" fill="url(#body)"/>
+    <rect x="334" y="232" width="132" height="4" fill="hsl(205 30% 40% / 0.35)"/>
+    <rect x="346" y="262" width="16" height="270" rx="8" fill="white" opacity="0.45"/>
+    <rect x="302" y="356" width="196" height="118" rx="10" fill="#fffdfb" opacity="0.96"/>
+  <rect x="302" y="356" width="196" height="118" rx="10" fill="none" stroke="hsl(205 20% 60% / 0.5)"/>
+  <text x="400" y="386" text-anchor="middle" font-family="'Segoe UI',Arial,Helvetica,sans-serif" font-size="13" letter-spacing="3" fill="hsl(205 30% 34%)">FIXDERMA</text>
+  <rect x="378" y="396" width="44" height="1.5" fill="hsl(205 30% 50% / 0.6)"/><text x="400" y="422" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="24" fill="#33222b">Shadow SPF 50+</text><text x="400" y="452" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="24" fill="#33222b">Sunscreen Gel</text>
+
+  <text x="400" y="742" text-anchor="middle" font-family="'Segoe UI',Arial,Helvetica,sans-serif" font-size="21" letter-spacing="4" fill="hsl(205 20% 34% / 0.75)">75 G</text>
+</svg>

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Dot &amp; Key Strawberry Dew Tinted Lip Balm SPF 30">
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="hsl(355 40% 96%)"/>
+      <stop offset="1" stop-color="hsl(355 34% 88%)"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="white" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(355 42% 80%)"/>
+      <stop offset="0.5" stop-color="hsl(355 48% 66%)"/>
+      <stop offset="1" stop-color="hsl(355 44% 54%)"/>
+    </linearGradient>
+    <linearGradient id="bodyDeep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(355 40% 46%)"/>
+      <stop offset="1" stop-color="hsl(355 42% 30%)"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(355 28% 34%)"/>
+      <stop offset="1" stop-color="hsl(355 30% 20%)"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9dfca"/><stop offset="0.5" stop-color="#c9b489"/><stop offset="1" stop-color="#a68a55"/>
+    </linearGradient>
+    <radialGradient id="pan" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="hsl(355 60% 84%)"/>
+      <stop offset="0.6" stop-color="hsl(355 55% 68%)"/>
+      <stop offset="1" stop-color="hsl(355 50% 56%)"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <rect width="800" height="800" fill="url(#glow)"/>
+  <circle cx="400" cy="430" r="252" fill="none" stroke="hsl(355 30% 55% / 0.28)" stroke-width="1.6"/>
+  <circle cx="633" cy="222" r="4" fill="hsl(355 45% 55% / 0.5)"/>
+  <circle cx="163" cy="286" r="3" fill="hsl(355 45% 55% / 0.45)"/>
+  <circle cx="192" cy="596" r="4" fill="hsl(355 45% 55% / 0.4)"/>
+  <ellipse cx="400" cy="648" rx="196" ry="26" fill="hsl(355 30% 30% / 0.16)"/>
+
+  <text x="400" y="98" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="34" fill="hsl(355 25% 26% / 0.85)">Dot &amp; Key</text>
+  <rect x="356" y="116" width="88" height="2" rx="1" fill="hsl(355 30% 40% / 0.4)"/>
+
+    <path d="M372 328 L428 328 L428 388 L372 372 Z" fill="hsl(355 62% 46%)"/>
+    <path d="M372 328 L392 328 L392 377 L372 372 Z" fill="white" opacity="0.28"/>
+    <rect x="364" y="388" width="72" height="34" fill="url(#metal)"/>
+    <rect x="352" y="422" width="96" height="198" rx="12" fill="url(#cap)"/>
+    <rect x="364" y="434" width="12" height="160" rx="6" fill="white" opacity="0.25"/>
+    <text x="400" y="678" text-anchor="middle" font-family="'Segoe UI',Arial,Helvetica,sans-serif" font-size="14" letter-spacing="3.5" fill="hsl(355 30% 32%)">DOT &amp; KEY</text><text x="400" y="706" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="23" fill="#33222b">Strawberry Dew Tinted</text><text x="400" y="733" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="23" fill="#33222b">Lip Balm SPF 30</text>
+
+  <text x="400" y="742" text-anchor="middle" font-family="'Segoe UI',Arial,Helvetica,sans-serif" font-size="21" letter-spacing="4" fill="hsl(355 20% 34% / 0.75)">12 G</text>
+</svg>
