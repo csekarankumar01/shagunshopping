@@ -23,7 +23,20 @@ app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.CLIENT_URL,
+        'https://shagunshopping.com',
+        'https://www.shagunshopping.com',
+        'http://shagunshopping.com',
+        'http://localhost:5173'
+      ];
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
