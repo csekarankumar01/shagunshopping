@@ -20,7 +20,7 @@ const About = () => (
       <p>
         In {SHOP_YEARS} years we've built something that can't be shortcut:
         direct relationships with the authorised distributors of{' '}
-        {BRANDS.length} brands. Every tube, jar and bottle we sell comes through
+        15+ brands. Every tube, jar and bottle we sell comes through
         official channels with proper invoices — that's how we guarantee 100%
         genuine products, and it's also how we can price everything below MRP.
         No middlemen, no grey-market stock, no compromises.

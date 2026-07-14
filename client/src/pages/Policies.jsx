@@ -58,7 +58,7 @@ const Policies = () => (
         </p>
         <p>
           Every product is sourced from authorised brand distributors with
-          proper invoices, and is sold sealed. That is our {`25-year`} guarantee
+          proper invoices, and is sold sealed. That is our {`${SHOP_YEARS}-year`} guarantee
           of authenticity.
         </p>
       </Section>

@@ -2,7 +2,7 @@
 
 export const SHOP_NAME = 'ShagunShopping';
 export const SHOP_TAGLINE = 'Genuine beauty, below MRP.';
-export const SHOP_ESTD = 2001; // 25 successful years and counting
+export const SHOP_ESTD = 2000; // 26 successful years and counting
 export const SHOP_YEARS = new Date().getFullYear() - SHOP_ESTD;
 
 export const SHOP_CONTACT = {
