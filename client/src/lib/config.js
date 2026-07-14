@@ -35,7 +35,7 @@ export const BRANDS = [
 ];
 
 // Display-only mirror of the server rules (server/.env is the source of truth)
-export const FREE_SHIPPING_ABOVE = 999;
+export const FREE_SHIPPING_ABOVE = 1499;
 export const SHIPPING_FEE = 49;
 
 // Category swatches: cosmetic-texture gradients used when a product has no photo
