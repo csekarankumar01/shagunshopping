@@ -61,9 +61,16 @@ const Home = () => {
               className="group flex flex-col items-center gap-4 transition-transform hover:-translate-y-1 min-w-[140px] snap-center md:min-w-0"
             >
               <div
-                className="flex w-32 h-32 md:w-36 md:h-36 items-center justify-center rounded-full shadow-lg border border-line"
+                className="relative flex w-32 h-32 md:w-36 md:h-36 items-center justify-center rounded-full shadow-lg border border-line overflow-hidden"
                 style={{ background: meta.gradient }}
               >
+                {meta.image && (
+                  <img
+                    src={meta.image}
+                    alt={name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                )}
               </div>
               <span className="font-display text-sm font-black uppercase tracking-widest text-ink text-center group-hover:text-mulberry transition-colors">
                 {name}
