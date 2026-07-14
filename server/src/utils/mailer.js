@@ -1,8 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const mailConfigured = () => !!process.env.RESEND_API_KEY;
+const resend = mailConfigured() ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const SHOP = () => process.env.SHOP_NAME || 'ShagunShopping';
 const ADDRESS = '1, Saraswati Vihar, Rohta Road, Meerut — 250001';
