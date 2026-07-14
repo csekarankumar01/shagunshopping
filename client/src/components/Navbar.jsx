@@ -19,8 +19,9 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-6">
-        <Link to="/" className="font-display text-2xl font-black tracking-widest text-ink">
-          {SHOP_NAME}
+        <Link to="/" className="font-display text-[26px] tracking-[0.15em] text-ink flex items-baseline">
+          <span className="font-black">Shagun</span>
+          <span className="font-normal text-muted ml-[2px]">Shopping</span>
         </Link>
 
         <form onSubmit={submitSearch} className="hidden flex-1 md:block" role="search">
