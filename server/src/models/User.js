@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+const addressSchema = new mongoose.Schema({
+  fullName: { type: String, required: true, trim: true },
+  phone: { type: String, required: true, trim: true },
+  line1: { type: String, required: true, trim: true },
+  line2: { type: String, trim: true, default: '' },
+  city: { type: String, required: true, trim: true },
+  state: { type: String, required: true, trim: true },
+  pincode: { type: String, required: true, trim: true },
+  isDefault: { type: Boolean, default: false },
+});
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 60 },
@@ -14,6 +25,8 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6, select: false },
     phone: { type: String, trim: true, default: '' },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+    addresses: { type: [addressSchema], default: [] },
+    preferredPayment: { type: String, enum: ['razorpay', 'cod'], default: 'razorpay' },
     // Email verification via OTP
     emailVerified: { type: Boolean, default: false },
     otpHash: { type: String, select: false },

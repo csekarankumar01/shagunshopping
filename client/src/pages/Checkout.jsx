@@ -34,7 +34,7 @@ const Field = ({ label, name, value, onChange, ...rest }) => (
 
 const Checkout = () => {
   const { items, subtotal, savings, shipping, total, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, applyUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -47,7 +47,7 @@ const Checkout = () => {
     state: '',
     pincode: '',
   });
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState(user?.preferredPayment === 'cod' ? 'cod' : 'razorpay');
 
   // Method-aware display totals — the server recomputes these authoritatively.
   const codBlocked = subtotal > COD_MAX;
@@ -64,6 +64,22 @@ const Checkout = () => {
     if (codBlocked && paymentMethod === 'cod') setPaymentMethod('razorpay');
   }, [codBlocked, paymentMethod]);
   const [placing, setPlacing] = useState(false);
+  const savedAddresses = user?.addresses || [];
+  const [selectedAddrId, setSelectedAddrId] = useState(null);
+  const [saveAddress, setSaveAddress] = useState(true);
+
+  const fillFrom = (a) => {
+    setAddress({ fullName: a.fullName, phone: a.phone, line1: a.line1, line2: a.line2 || '', city: a.city, state: a.state, pincode: a.pincode });
+    setSelectedAddrId(a._id);
+  };
+
+  // Autofill the default saved address once
+  useEffect(() => {
+    if (savedAddresses.length && !selectedAddrId && !address.line1) {
+      fillFrom(savedAddresses.find((a) => a.isDefault) || savedAddresses[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -77,7 +93,10 @@ const Checkout = () => {
     );
   }
 
-  const onChange = (e) => setAddress((a) => ({ ...a, [e.target.name]: e.target.value }));
+  const onChange = (e) => {
+    setSelectedAddrId(null);
+    setAddress((a) => ({ ...a, [e.target.name]: e.target.value }));
+  };
 
   const openRazorpay = (order, rzp) =>
     new Promise((resolve) => {
@@ -125,6 +144,13 @@ const Checkout = () => {
       };
       const { data } = await api.post('/orders', payload);
 
+      // Save this address to the account for next time (fire and forget)
+      if (saveAddress && !selectedAddrId) {
+        api.post('/auth/addresses', { ...address, isDefault: savedAddresses.length === 0 })
+          .then((res) => applyUser(res.data.user))
+          .catch(() => {});
+      }
+
       if (paymentMethod === 'cod') {
         clearCart();
         navigate(`/orders/${data.order._id}?placed=1`);
@@ -163,6 +189,24 @@ const Checkout = () => {
           <section className="card p-5">
             <p className="font-bold">Delivery address</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {savedAddresses.length > 0 && (
+                <div className="sm:col-span-2">
+                  <p className="label">Deliver to a saved address</p>
+                  <div className="flex flex-wrap gap-2">
+                    {savedAddresses.map((a) => (
+                      <button
+                        key={a._id}
+                        type="button"
+                        onClick={() => fillFrom(a)}
+                        className={`rounded-xl border px-3 py-2 text-left text-xs transition-colors ${selectedAddrId === a._id ? 'border-mulberry bg-blush/40' : 'border-line hover:border-mulberry'}`}
+                      >
+                        <span className="block font-bold">{a.fullName}{a.isDefault ? ' · Default' : ''}</span>
+                        <span className="text-muted">{a.line1}, {a.city} — {a.pincode}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Field label="Full name" name="fullName" value={address.fullName} onChange={onChange} required autoComplete="name" />
               <Field label="Phone" name="phone" value={address.phone} onChange={onChange} required inputMode="numeric" pattern="[0-9]{10}" title="10-digit mobile number" autoComplete="tel" />
               <div className="sm:col-span-2">
@@ -174,6 +218,12 @@ const Checkout = () => {
               <Field label="City" name="city" value={address.city} onChange={onChange} required autoComplete="address-level2" />
               <Field label="State" name="state" value={address.state} onChange={onChange} required autoComplete="address-level1" />
               <Field label="PIN code" name="pincode" value={address.pincode} onChange={onChange} required inputMode="numeric" pattern="[0-9]{6}" title="6-digit PIN code" autoComplete="postal-code" />
+              {user && !selectedAddrId && (
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-muted sm:col-span-2">
+                  <input type="checkbox" className="accent-mulberry" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} />
+                  Save this address to my account for faster checkout
+                </label>
+              )}
             </div>
           </section>
 

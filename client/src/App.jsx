@@ -11,6 +11,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
+import Account from './pages/Account';
 import Invoice from './pages/Invoice';
 import OrderDetail from './pages/OrderDetail';
 import Login from './pages/Login';
@@ -57,6 +58,14 @@ const App = () => (
           element={
             <RequireAuth>
               <Orders />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <RequireAuth>
+              <Account />
             </RequireAuth>
           }
         />

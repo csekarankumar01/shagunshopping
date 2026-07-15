@@ -9,6 +9,8 @@ const publicUser = (u) => ({
   email: u.email,
   phone: u.phone,
   role: u.role,
+  addresses: u.addresses || [],
+  preferredPayment: u.preferredPayment || 'razorpay',
 });
 
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -136,7 +138,80 @@ export const updateProfile = async (req, res, next) => {
     const user = await User.findById(req.user._id).select('+password');
     if (req.body.name) user.name = req.body.name;
     if (req.body.phone !== undefined) user.phone = req.body.phone;
-    if (req.body.password) user.password = req.body.password;
+    if (req.body.preferredPayment) user.preferredPayment = req.body.preferredPayment;
+    if (req.body.password) {
+      // Changing the password requires proving you know the current one
+      const ok = await user.matchPassword(req.body.currentPassword || '');
+      if (!ok) return res.status(401).json({ message: 'Current password is incorrect' });
+      user.password = req.body.password;
+    }
+    await user.save();
+    res.json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------------- Saved addresses ---------------- */
+
+const applyDefault = (user, makeDefaultId = null) => {
+  if (makeDefaultId) {
+    user.addresses.forEach((a) => { a.isDefault = a._id.toString() === makeDefaultId.toString(); });
+  } else if (user.addresses.length && !user.addresses.some((a) => a.isDefault)) {
+    user.addresses[0].isDefault = true; // always keep exactly one default
+  }
+};
+
+// POST /api/auth/addresses
+export const addAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const { fullName, phone, line1, line2 = '', city, state, pincode, isDefault } = req.body;
+
+    // Same street line + PIN already saved? Update it instead of duplicating.
+    const existing = user.addresses.find(
+      (a) => a.line1.trim().toLowerCase() === line1.trim().toLowerCase() && a.pincode === pincode
+    );
+    if (existing) {
+      Object.assign(existing, { fullName, phone, line1, line2, city, state });
+      if (isDefault) applyDefault(user, existing._id);
+    } else {
+      user.addresses.push({ fullName, phone, line1, line2, city, state, pincode });
+      if (isDefault || user.addresses.length === 1) applyDefault(user, user.addresses[user.addresses.length - 1]._id);
+    }
+    applyDefault(user);
+    await user.save();
+    res.status(201).json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/addresses/:addressId
+export const updateAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const addr = user.addresses.id(req.params.addressId);
+    if (!addr) return res.status(404).json({ message: 'Address not found' });
+    const { fullName, phone, line1, line2 = '', city, state, pincode, isDefault } = req.body;
+    Object.assign(addr, { fullName, phone, line1, line2, city, state, pincode });
+    if (isDefault) applyDefault(user, addr._id);
+    applyDefault(user);
+    await user.save();
+    res.json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE /api/auth/addresses/:addressId
+export const deleteAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const addr = user.addresses.id(req.params.addressId);
+    if (!addr) return res.status(404).json({ message: 'Address not found' });
+    addr.deleteOne();
+    applyDefault(user);
     await user.save();
     res.json({ user: publicUser(user) });
   } catch (err) {

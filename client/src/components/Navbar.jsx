@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, LogOut, Shield, Package } from 'lucide-react';
+import { Search, ShoppingBag, LogOut, Shield, Package, UserRound } from 'lucide-react';
 import { SHOP_NAME } from '../lib/config';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -73,6 +73,17 @@ const Navbar = () => {
               className="rounded-full p-2.5 text-ink hover:text-mulberry"
             >
               <Package size={20} />
+            </Link>
+          )}
+
+          {user && (
+            <Link
+              to="/account"
+              aria-label="My account"
+              title="My account"
+              className="rounded-full p-2.5 text-ink hover:text-mulberry"
+            >
+              <UserRound size={20} />
             </Link>
           )}
 

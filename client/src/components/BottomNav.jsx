@@ -53,7 +53,7 @@ const BottomNav = () => {
       </NavLink>
 
       <NavLink
-        to={user ? '/orders' : '/login'}
+        to={user ? '/account' : '/login'}
         className={({ isActive }) =>
           `flex flex-col items-center gap-1 p-2 ${
             isActive ? 'text-mulberry' : 'text-muted hover:text-ink'
