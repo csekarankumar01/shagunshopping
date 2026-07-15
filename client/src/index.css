@@ -1,25 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 /*
-  ShagunShopping design tokens — True Swiss Beauty Monochrome
-  Crisp white backgrounds, solid black text and CTAs, subtle grey borders.
-  Headings: Roboto. Body: Nunito Sans.
+  ShagunShopping design tokens — "Rose Glow" immersive beauty system
+  Soft rose-white ground with ambient color washes, hot magenta CTAs
+  with glow, violet undertones, glassy surfaces. Display: Archivo.
+  Token NAMES are unchanged, so every component re-skins automatically.
 */
 @theme {
-  --color-porcelain: #ffffff;
-  --color-ink: #111111;
-  --color-muted: #6f6f6f;
-  --color-mulberry: #111111;
-  --color-mulberry-deep: #333333;
-  --color-blush: #f9f9f9;
-  --color-sage: #1d8a58;
-  --color-sage-soft: #e4f6ec;
-  --color-gold: #e9a11b;
-  --color-line: #e8e8e1;
+  --color-porcelain: #fffafd;
+  --color-ink: #1a1220;
+  --color-muted: #7a6b7a;
+  --color-mulberry: #e81f76;
+  --color-mulberry-deep: #bd0f5e;
+  --color-blush: #ffe3f0;
+  --color-sage: #159a63;
+  --color-sage-soft: #e3f7ed;
+  --color-gold: #f0a01c;
+  --color-line: #f2e2ec;
 
-  --font-display: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -28,23 +29,40 @@
   }
 
   body {
-    @apply bg-porcelain text-ink font-sans antialiased;
+    @apply text-ink font-sans antialiased;
+    /* Ambient color washes — the "immersive" ground the whole site sits on */
+    background:
+      radial-gradient(55rem 38rem at 88% -12%, rgba(255, 122, 189, 0.16), transparent 60%),
+      radial-gradient(48rem 34rem at -12% 28%, rgba(168, 116, 255, 0.12), transparent 55%),
+      radial-gradient(42rem 30rem at 58% 112%, rgba(255, 176, 133, 0.12), transparent 52%),
+      var(--color-porcelain);
+    background-attachment: fixed;
   }
 
-  /* Punchy campaign-style headlines */
-  .font-display {
-    letter-spacing: -0.02em;
+  /* Campaign-style headlines everywhere */
+  .font-display,
+  h1, h2, h3 {
+    font-family: var(--font-display) !important;
+    font-style: normal !important;
+    font-weight: 800;
+    letter-spacing: -0.03em;
   }
 
   ::selection {
-    @apply bg-blush text-ink;
+    @apply bg-mulberry text-white;
   }
 
   :focus-visible {
     outline: 2px solid var(--color-mulberry);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
+
+  /* Slim, on-brand scrollbar */
+  * { scrollbar-width: thin; scrollbar-color: #f0bcd7 transparent; }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-thumb { background: #f0bcd7; border-radius: 999px; }
+  *::-webkit-scrollbar-thumb:hover { background: var(--color-mulberry); }
 }
 
 @layer components {
@@ -52,16 +70,41 @@
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
-  .eyebrow {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.22em] text-mulberry;
+  /* Gradient ink for eyebrows and hero accents */
+  .text-gradient {
+    background-image: linear-gradient(100deg, #ff4d9d 0%, #e81f76 45%, #a24bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
+  .eyebrow {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.24em];
+    background-image: linear-gradient(100deg, #ff4d9d 0%, #e81f76 45%, #a24bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Glowing gradient CTA — the signature button */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 bg-mulberry text-white hover:bg-mulberry-deep active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-white transition-all disabled:cursor-not-allowed disabled:opacity-50;
+    background-image: linear-gradient(120deg, #ff3d94 0%, #e81f76 55%, #a24bff 130%);
+    box-shadow: 0 12px 34px -12px rgba(232, 31, 118, 0.55);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 16px 40px -12px rgba(232, 31, 118, 0.7);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-extrabold uppercase tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 border-2 border-ink bg-white text-ink hover:border-mulberry hover:text-mulberry active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-white/70 px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-ink backdrop-blur transition-all hover:border-mulberry hover:text-mulberry disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   .btn-sm {
@@ -69,47 +112,40 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mulberry focus:outline-none;
+    @apply w-full rounded-xl border border-line bg-white/85 px-4 py-2.5 text-sm text-ink placeholder:text-muted transition-shadow focus:border-mulberry focus:outline-none;
+  }
+  .input:focus {
+    box-shadow: 0 0 0 4px rgba(232, 31, 118, 0.12);
   }
 
   .label {
     @apply mb-1 block text-xs font-bold text-ink;
   }
 
+  /* Glassy cards with a rosy glow on hover */
   .card {
-    @apply rounded-xl border border-line bg-white;
+    @apply rounded-2xl border border-white/70 bg-white/85 backdrop-blur-md transition-shadow;
+    box-shadow: 0 10px 36px -18px rgba(26, 18, 32, 0.18);
+  }
+  .card:hover {
+    box-shadow: 0 18px 44px -18px rgba(232, 31, 118, 0.22);
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white/75 px-3 py-1.5 text-xs font-semibold text-ink backdrop-blur;
   }
 }
 
 /* Brand marquee (the signature "counter" ticker) */
 @keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
-.animate-marquee {
-  animation: marquee 36s linear infinite;
-}
-
-.marquee-mask:hover .animate-marquee {
-  animation-play-state: paused;
-}
+.animate-marquee { animation: marquee 36s linear infinite; }
+.marquee-mask:hover .animate-marquee { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
-
-  html {
-    scroll-behavior: auto;
-  }
+  .animate-marquee { animation: none; }
+  html { scroll-behavior: auto; }
 }

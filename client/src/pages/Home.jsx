@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, Banknote, Truck, ArrowRight } from 'lucide-react';
 import api from '../lib/api';
-import { SHOP_NAME, BRANDS, CATEGORY_META, FREE_SHIPPING_ABOVE, SHOP_YEARS } from '../lib/config';
+import { SHOP_NAME, BRANDS, FREE_SHIPPING_ABOVE, SHOP_YEARS } from '../lib/config';
 import BrandMarquee from '../components/BrandMarquee';
 import ProductCard from '../components/ProductCard';
 import { Spinner } from '../components/Spinner';
@@ -33,12 +33,15 @@ const Home = () => {
           alt="Campaign makeup"
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-tr from-ink/85 via-ink/35 to-transparent" />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-fuchsia-500/30 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 left-1/4 h-80 w-80 rounded-full bg-violet-500/25 blur-3xl" />
         <div className="container-page relative z-10">
           <p className="eyebrow text-porcelain mb-4">India's leading MULTI-BRAND store</p>
           <h1 className="font-display text-6xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[100px]">
             Unleash your
             <br />
-            <span className="text-mulberry">boldest</span> self.
+            <span className="text-gradient">boldest</span> self.
           </h1>
           <div className="mt-10">
             <Link to="/shop" className="btn-primary text-base px-10 py-4">
@@ -50,10 +53,10 @@ const Home = () => {
 
       <BrandMarquee />
 
-
+      {/* Categories */}
 
       {/* Featured products */}
-      <section className="container-page py-16">
+      <section className="container-page pb-16">
         <div className="mb-10 text-center">
           <h2 className="font-display text-4xl font-black uppercase tracking-tight">Trending Now</h2>
           <Link to="/shop" className="mt-3 inline-block text-xs font-extrabold uppercase tracking-widest text-mulberry hover:text-mulberry-deep">

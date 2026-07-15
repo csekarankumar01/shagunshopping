@@ -8,7 +8,7 @@ const BottomNav = () => {
   const { user } = useAuth();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-line bg-white pb-safe pt-1 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-line/70 bg-white/85 backdrop-blur-xl pb-safe pt-1 md:hidden">
       <NavLink
         to="/"
         className={({ isActive }) =>
