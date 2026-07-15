@@ -70,7 +70,8 @@ export const createOrder = async (req, res, next) => {
 
     const totals = computeTotals(orderItems, paymentMethod);
 
-    // COD is capped — large orders must be prepaid (RTO protection)
+    // COD capped: big COD orders are the ones that get refused at the door
+    // and come back on my shipping bill, so above this amount it's prepaid only
     if (paymentMethod === 'cod') {
       const { codMax } = getShippingRules();
       if (totals.itemsPrice > codMax) {
@@ -95,7 +96,7 @@ export const createOrder = async (req, res, next) => {
         status: 'processing',
       });
       sendOrderConfirmationEmail(req.user.email, req.user.name, order); // fire and forget
-      sendOwnerNewOrderEmail(order, req.user); // owner alert, fire and forget
+      sendOwnerNewOrderEmail(order, req.user); // papa gets pinged instantly
       return res.status(201).json({ order });
     }
 

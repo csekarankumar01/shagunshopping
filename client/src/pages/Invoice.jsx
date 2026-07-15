@@ -6,16 +6,14 @@ import { inr, formatDate, shortId } from '../lib/format';
 import { Spinner, Empty } from '../components/Spinner';
 import { SHOP_NAME, SHOP_CONTACT, SHOP_GSTIN } from '../lib/config';
 
-/**
- * Printable invoice for an order. Customers reach it from Order Details,
- * the owner from the admin orders table. "Download" = the browser's
- * print dialog -> Save as PDF (works on phone and desktop, zero deps).
- *
- * Tax: prices are MRP-inclusive. If SHOP_GSTIN is set in lib/config.js the
- * invoice shows a GST break-up (18% inclusive) — CGST+SGST for deliveries
- * within Uttar Pradesh, IGST otherwise. With no GSTIN it stays a plain
- * retail invoice with no tax lines.
- */
+/*
+  Printable invoice. Instead of generating PDFs on the server (extra deps,
+  extra memory on a free dyno) I render clean HTML and let the browser's
+  print dialog do "Save as PDF" — works on phones too. Prices in India are
+  MRP-inclusive of GST, so the tax break-up is derived FROM the total
+  (total / 1.18), and only shows once SHOP_GSTIN is filled in config.
+  CGST+SGST when shipping within UP, IGST otherwise.
+*/
 
 const GST_RATE = 0.18;
 

@@ -49,7 +49,8 @@ const Checkout = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState(user?.preferredPayment === 'cod' ? 'cod' : 'razorpay');
 
-  // Method-aware display totals — the server recomputes these authoritatively.
+  // These totals are display-only; the server recomputes everything from DB
+  // prices when the order is placed (see server/src/utils/pricing.js).
   const codBlocked = subtotal > COD_MAX;
   const threshold = paymentMethod === 'cod' ? FREE_SHIPPING_ABOVE : FREE_SHIPPING_ABOVE_PREPAID;
   const shippingDisplay = subtotal >= threshold ? 0 : SHIPPING_FEE;
@@ -144,7 +145,8 @@ const Checkout = () => {
       };
       const { data } = await api.post('/orders', payload);
 
-      // Save this address to the account for next time (fire and forget)
+      // quietly save the address for next time — if this call fails the
+      // order itself is unaffected, so no await / no error toast
       if (saveAddress && !selectedAddrId) {
         api.post('/auth/addresses', { ...address, isDefault: savedAddresses.length === 0 })
           .then((res) => applyUser(res.data.user))

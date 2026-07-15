@@ -5,14 +5,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { protect, admin } from '../middleware/auth.js';
 
-/**
- * POST /api/upload  (admin only, field name: "image")
- * Saves product photos to server/uploads/ and returns an absolute URL.
- *
- * Note for production: on hosts with ephemeral disks (Render free tier),
- * uploaded files are lost on redeploy — move to Cloudinary/S3 for permanence
- * (see README). For a VPS or persistent disk this works as-is.
- */
+// Product photo uploads (admin only). Files land in server/uploads/ and are
+// served statically. Note to self: on Render's free tier the disk is wiped on
+// every redeploy, so long-term this should move to Cloudinary — documented
+// in the roadmap. I return an absolute URL because the storefront (Vercel)
+// and API (Render) run on different domains.
 
 const UPLOAD_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'uploads');
 

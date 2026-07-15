@@ -1,15 +1,11 @@
-/**
- * All money math happens here, on the server, from database prices.
- * The client only ever sends product IDs, quantities and a payment method;
- * the client-side numbers are display mirrors only.
- *
- * Pricing architecture:
- *  - Prepaid (Razorpay): free shipping above FREE_SHIPPING_ABOVE_PREPAID (default 1199)
- *  - COD: free shipping above FREE_SHIPPING_ABOVE (default 1499) + a flat COD_FEE (default 40)
- *  - COD unavailable when the items subtotal exceeds COD_MAX (default 2500)
- * Together these steer customers toward prepaid (near-zero RTO risk) while
- * keeping every order's shipping economics healthy.
- */
+// All money math lives here on the server. I learned early on that you can't
+// trust totals coming from the browser (anyone can edit them in devtools),
+// so the client only sends product ids + qty + payment method, and this file
+// recomputes everything from DB prices.
+//
+// Why two free-shipping thresholds? COD orders cost us extra (courier COD fee
+// + the risk of the customer refusing the parcel), so prepaid gets the better
+// deal. Numbers are env-configurable so papa can tune them without a deploy.
 export const getShippingRules = () => ({
   freeAbove: Number(process.env.FREE_SHIPPING_ABOVE || 1499), // COD threshold
   freeAbovePrepaid: Number(process.env.FREE_SHIPPING_ABOVE_PREPAID || 1199),

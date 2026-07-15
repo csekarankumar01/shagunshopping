@@ -2,10 +2,10 @@
 @import 'tailwindcss';
 
 /*
-  ShagunShopping design tokens — "Rose Glow" immersive beauty system
-  Soft rose-white ground with ambient color washes, hot magenta CTAs
-  with glow, violet undertones, glassy surfaces. Display: Archivo.
-  Token NAMES are unchanged, so every component re-skins automatically.
+  Design tokens for the whole site ("rose glow" theme, v4 after a lot of
+  experimenting). Every component references these variable names, so
+  changing a value here re-skins the entire app — that's how I iterated
+  through the monochrome phase and back to colour without touching JSX.
 */
 @theme {
   --color-porcelain: #fffafd;
