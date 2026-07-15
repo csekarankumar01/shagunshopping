@@ -71,6 +71,9 @@ const AdminOrders = () => {
                       <Link to={`/orders/${o._id}`} className="font-extrabold text-mulberry hover:text-mulberry-deep">
                         {shortId(o._id)}
                       </Link>
+                      <Link to={`/orders/${o._id}/invoice`} className="ml-2 text-xs font-bold text-muted underline hover:text-mulberry">
+                        invoice
+                      </Link>
                       <p className="text-xs text-muted">{formatDate(o.createdAt)}</p>
                     </td>
                     <td className="p-4">

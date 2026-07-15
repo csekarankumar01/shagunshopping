@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { inr } from '../lib/format';
-import { FREE_SHIPPING_ABOVE, CATEGORY_META } from '../lib/config';
+import { FREE_SHIPPING_ABOVE_PREPAID, CATEGORY_META } from '../lib/config';
 import QtyPicker from '../components/QtyPicker';
 import { Empty } from '../components/Spinner';
 
@@ -34,7 +34,7 @@ const Cart = () => {
     );
   }
 
-  const toFreeShipping = FREE_SHIPPING_ABOVE - subtotal;
+  const toFreeShipping = FREE_SHIPPING_ABOVE_PREPAID - subtotal;
 
   return (
     <div className="container-page py-10">
@@ -100,7 +100,7 @@ const Cart = () => {
           </dl>
           {toFreeShipping > 0 && (
             <p className="mt-3 rounded-xl bg-blush px-3 py-2 text-xs font-semibold text-mulberry-deep">
-              Add {inr(toFreeShipping)} more for free shipping
+              Add {inr(toFreeShipping)} more for free shipping on online payment
             </p>
           )}
           <button onClick={() => navigate('/checkout')} className="btn-primary mt-5 w-full">

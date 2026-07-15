@@ -1,6 +1,6 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import { computeTotals } from '../utils/pricing.js';
+import { computeTotals, getShippingRules } from '../utils/pricing.js';
 import { getRazorpay } from './paymentController.js';
 import {
   sendOrderConfirmationEmail,
@@ -68,7 +68,17 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
-    const totals = computeTotals(orderItems);
+    const totals = computeTotals(orderItems, paymentMethod);
+
+    // COD is capped — large orders must be prepaid (RTO protection)
+    if (paymentMethod === 'cod') {
+      const { codMax } = getShippingRules();
+      if (totals.itemsPrice > codMax) {
+        return res.status(400).json({
+          message: `Cash on delivery is available up to ₹${codMax.toLocaleString('en-IN')} — please pay online for larger orders`,
+        });
+      }
+    }
 
     // ---- Cash on delivery: confirm immediately ----
     if (paymentMethod === 'cod') {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, FileText } from 'lucide-react';
 import api, { getErrorMessage } from '../lib/api';
 import { inr, formatDate, shortId, STATUS_META } from '../lib/format';
 import { Spinner, Empty } from '../components/Spinner';
@@ -68,6 +68,7 @@ const OrderDetail = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">Order {shortId(order._id)}</h1>
+            <Link to={`/orders/${order._id}/invoice`} className="btn-ghost btn-sm mt-3 inline-flex"><FileText size={14} /> Invoice</Link>
           <p className="mt-1 text-sm text-muted">Placed on {formatDate(order.createdAt)}</p>
         </div>
         <span className={`rounded-full px-4 py-1.5 text-xs font-bold ${meta.cls}`}>{meta.label}</span>
@@ -92,6 +93,12 @@ const OrderDetail = () => {
             <span className="text-muted">Shipping</span>
             <span className="font-semibold">{order.shippingPrice === 0 ? 'Free' : inr(order.shippingPrice)}</span>
           </div>
+          {order.codFee > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted">COD fee</span>
+              <span className="font-semibold">{inr(order.codFee)}</span>
+            </div>
+          )}
           <div className="flex justify-between pt-2 text-base">
             <span className="font-bold">Total</span>
             <span className="font-extrabold">{inr(order.totalPrice)}</span>

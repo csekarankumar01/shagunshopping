@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { FREE_SHIPPING_ABOVE, SHIPPING_FEE } from '../lib/config';
+import { FREE_SHIPPING_ABOVE_PREPAID, SHIPPING_FEE } from '../lib/config';
 
 const CartContext = createContext(null);
 const STORAGE_KEY = 'shagun_cart_v1';
@@ -63,7 +63,7 @@ export const CartProvider = ({ children }) => {
   const totals = useMemo(() => {
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
     const mrpTotal = items.reduce((s, i) => s + i.mrp * i.qty, 0);
-    const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_ABOVE ? 0 : SHIPPING_FEE;
+    const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_ABOVE_PREPAID ? 0 : SHIPPING_FEE;
     return {
       count: items.reduce((s, i) => s + i.qty, 0),
       subtotal,

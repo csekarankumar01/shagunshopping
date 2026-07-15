@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { getErrorMessage } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { inr } from '../lib/format';
+import {
+  FREE_SHIPPING_ABOVE,
+  FREE_SHIPPING_ABOVE_PREPAID,
+  SHIPPING_FEE,
+  COD_FEE,
+  COD_MAX,
+} from '../lib/config';
 import { Empty } from '../components/Spinner';
 
 /** Load Razorpay's checkout script once. */
@@ -41,6 +48,21 @@ const Checkout = () => {
     pincode: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
+
+  // Method-aware display totals — the server recomputes these authoritatively.
+  const codBlocked = subtotal > COD_MAX;
+  const threshold = paymentMethod === 'cod' ? FREE_SHIPPING_ABOVE : FREE_SHIPPING_ABOVE_PREPAID;
+  const shippingDisplay = subtotal >= threshold ? 0 : SHIPPING_FEE;
+  const codFee = paymentMethod === 'cod' ? COD_FEE : 0;
+  const payable = subtotal + shippingDisplay + codFee;
+  const prepaidShipping = subtotal >= FREE_SHIPPING_ABOVE_PREPAID ? 0 : SHIPPING_FEE;
+  const prepaidSaving = subtotal + shippingDisplay + COD_FEE - (subtotal + prepaidShipping);
+  const isMeerut = /^2500\d{2}$/.test(address.pincode);
+
+  // If the cart grows past the COD cap, fall back to online payment.
+  useEffect(() => {
+    if (codBlocked && paymentMethod === 'cod') setPaymentMethod('razorpay');
+  }, [codBlocked, paymentMethod]);
   const [placing, setPlacing] = useState(false);
 
   if (items.length === 0) {
@@ -169,23 +191,40 @@ const Checkout = () => {
                 />
                 <span>
                   <span className="block text-sm font-bold">Pay online</span>
-                  <span className="text-xs text-muted">UPI, cards, netbanking and wallets via Razorpay</span>
+                  <span className="text-xs text-muted">
+                    UPI, cards, netbanking and wallets via Razorpay · free shipping above {inr(FREE_SHIPPING_ABOVE_PREPAID)}
+                  </span>
                 </span>
               </label>
-              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${paymentMethod === 'cod' ? 'border-mulberry bg-blush/40' : 'border-line'}`}>
+              <label className={`flex items-start gap-3 rounded-xl border p-4 ${codBlocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${paymentMethod === 'cod' ? 'border-mulberry bg-blush/40' : 'border-line'}`}>
                 <input
                   type="radio"
                   name="payment"
                   value="cod"
+                  disabled={codBlocked}
                   checked={paymentMethod === 'cod'}
                   onChange={() => setPaymentMethod('cod')}
                   className="mt-1 accent-mulberry"
                 />
                 <span>
                   <span className="block text-sm font-bold">Cash on delivery</span>
-                  <span className="text-xs text-muted">Pay when your order arrives</span>
+                  <span className="text-xs text-muted">
+                    {codBlocked
+                      ? `Available up to ${inr(COD_MAX)} — please pay online for larger orders`
+                      : `Pay when your order arrives · ${inr(COD_FEE)} COD fee`}
+                  </span>
                 </span>
               </label>
+              {paymentMethod === 'cod' && prepaidSaving > 0 && (
+                <p className="rounded-xl bg-sage-soft px-3 py-2 text-xs font-bold text-sage">
+                  Pay online instead and save {inr(prepaidSaving)} on this order
+                </p>
+              )}
+              {isMeerut && (
+                <p className="rounded-xl bg-blush px-3 py-2 text-xs font-bold text-mulberry-deep">
+                  Meerut address detected — we deliver in Meerut the same day!
+                </p>
+              )}
             </div>
           </section>
         </div>
@@ -215,19 +254,25 @@ const Checkout = () => {
             )}
             <div className="flex justify-between">
               <dt className="text-muted">Shipping</dt>
-              <dd className="font-semibold">{shipping === 0 ? 'Free' : inr(shipping)}</dd>
+              <dd className="font-semibold">{shippingDisplay === 0 ? 'Free' : inr(shippingDisplay)}</dd>
             </div>
+            {codFee > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted">COD fee</dt>
+                <dd className="font-semibold">{inr(codFee)}</dd>
+              </div>
+            )}
             <div className="flex justify-between border-t border-line pt-3 text-base">
               <dt className="font-bold">Total</dt>
-              <dd className="font-extrabold">{inr(total)}</dd>
+              <dd className="font-extrabold">{inr(payable)}</dd>
             </div>
           </dl>
           <button className="btn-primary mt-5 w-full" disabled={placing}>
             {placing
               ? 'Placing order…'
               : paymentMethod === 'cod'
-                ? `Place order — ${inr(total)}`
-                : `Pay ${inr(total)}`}
+                ? `Place order — ${inr(payable)}`
+                : `Pay ${inr(payable)}`}
           </button>
           <p className="mt-3 text-center text-[11px] text-muted">
             The final amount is verified on our server before payment. All sales

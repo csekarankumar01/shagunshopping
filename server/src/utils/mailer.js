@@ -119,6 +119,7 @@ export const sendOrderConfirmationEmail = (to, name, order) => {
        <table style="width:100%;border-collapse:collapse;margin:14px 0;">${rows}
          <tr><td style="padding:8px 0;font-size:13px;color:#7d6a72;">Items</td><td style="padding:8px 0;font-size:13px;text-align:right;">${inr(order.itemsPrice)}</td></tr>
          <tr><td style="padding:2px 0;font-size:13px;color:#7d6a72;">Shipping</td><td style="padding:2px 0;font-size:13px;text-align:right;">${order.shippingPrice === 0 ? 'Free' : inr(order.shippingPrice)}</td></tr>
+         ${order.codFee ? `<tr><td style="padding:2px 0;font-size:13px;color:#7d6a72;">COD fee</td><td style="padding:2px 0;font-size:13px;text-align:right;">${inr(order.codFee)}</td></tr>` : ''}
          <tr><td style="padding:10px 0;font-size:15px;font-weight:bold;">Total</td><td style="padding:10px 0;font-size:15px;text-align:right;font-weight:bold;color:#8a2d52;">${inr(order.totalPrice)}</td></tr>
        </table>
        <div style="background:#fbf7f6;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.7;color:#4a3a42;">
