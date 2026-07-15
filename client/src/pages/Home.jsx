@@ -50,35 +50,7 @@ const Home = () => {
 
       <BrandMarquee />
 
-      {/* Categories */}
-      <section className="container-page py-16">
-        <h2 className="font-display text-center text-4xl font-black uppercase tracking-tight mb-10">Shop by category</h2>
-        <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-3 lg:grid-cols-6">
-          {Object.entries(CATEGORY_META).map(([name, meta]) => (
-            <Link
-              key={name}
-              to={`/shop?category=${encodeURIComponent(name)}`}
-              className="group flex flex-col items-center gap-4 transition-transform hover:-translate-y-1 min-w-[140px] snap-center md:min-w-0"
-            >
-              <div
-                className="relative flex w-32 h-32 md:w-36 md:h-36 items-center justify-center rounded-full shadow-lg border border-line overflow-hidden"
-                style={{ background: meta.gradient }}
-              >
-                {meta.image && (
-                  <img
-                    src={meta.image}
-                    alt={name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                )}
-              </div>
-              <span className="font-display text-sm font-black uppercase tracking-widest text-ink text-center group-hover:text-mulberry transition-colors">
-                {name}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+
 
       {/* Featured products */}
       <section className="container-page pb-16">
