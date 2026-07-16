@@ -62,6 +62,11 @@ const Login = () => {
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
             />
+            <div className="mt-1.5 text-right">
+              <Link to="/forgot-password" className="text-sm font-semibold text-mulberry">
+                Forgot password?
+              </Link>
+            </div>
           </div>
           {error && <p className="text-sm font-semibold text-mulberry">{error}</p>}
           <button className="btn-primary w-full" disabled={busy}>

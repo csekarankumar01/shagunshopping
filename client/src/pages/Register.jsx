@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Turnstile, { captchaEnabled } from '../components/Turnstile.jsx';
 import { getErrorMessage } from '../lib/api';
 import { SHOP_NAME } from '../lib/config';
 
@@ -13,6 +14,8 @@ const Register = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const onCaptcha = useCallback((t) => setCaptchaToken(t), []);
 
   const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -21,7 +24,7 @@ const Register = () => {
     setError('');
     setBusy(true);
     try {
-      const data = await register(form);
+      const data = await register({ ...form, captchaToken });
       navigate(`/verify-email?next=${encodeURIComponent(next)}`, { state: { email: data.email } });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -55,7 +58,8 @@ const Register = () => {
             <p className="mt-1 text-xs text-muted">At least 6 characters. We'll email you a code to verify your address.</p>
           </div>
           {error && <p className="text-sm font-semibold text-mulberry">{error}</p>}
-          <button className="btn-primary w-full" disabled={busy}>
+          <Turnstile onVerify={onCaptcha} />
+          <button className="btn-primary w-full" disabled={busy || (captchaEnabled && !captchaToken)}>
             {busy ? 'Creating account…' : 'Create account'}
           </button>
         </form>

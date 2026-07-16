@@ -74,6 +74,17 @@ const OrderDetail = () => {
         <span className={`rounded-full px-4 py-1.5 text-xs font-bold ${meta.cls}`}>{meta.label}</span>
       </div>
 
+      {order.trackingUrl && order.status === 'shipped' && (
+        <a
+          href={order.trackingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary mt-4 inline-flex"
+        >
+          Track your parcel
+        </a>
+      )}
+
       <section className="card mt-6 divide-y divide-line">
         {order.orderItems.map((item, i) => (
           <div key={i} className="flex items-center justify-between gap-3 p-4 text-sm">

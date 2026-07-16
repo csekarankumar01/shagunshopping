@@ -211,7 +211,7 @@ export const adminListOrders = async (req, res, next) => {
 // PUT /api/orders/:id/status  Body: { status }
 export const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status, trackingUrl } = req.body;
     const order = await Order.findById(req.params.id).populate('user', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
@@ -223,6 +223,9 @@ export const updateOrderStatus = async (req, res, next) => {
         order.isPaid = true;
         order.paidAt = new Date();
       }
+    }
+    if (typeof trackingUrl === 'string' && /^https?:\/\//.test(trackingUrl.trim())) {
+      order.trackingUrl = trackingUrl.trim();
     }
     await order.save();
 

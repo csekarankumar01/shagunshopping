@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import User from '../models/User.js';
 import { generateToken } from '../utils/token.js';
-import { sendOtpEmail, sendWelcomeEmail } from '../utils/mailer.js';
+import { sendOtpEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordChangedEmail, sendAdminLoginAlert } from '../utils/mailer.js';
 
 const publicUser = (u) => ({
   _id: u._id,
@@ -116,6 +116,9 @@ export const login = async (req, res, next) => {
       return res.json({ needsVerification: true, email: user.email });
     }
     const token = generateToken(user._id);
+    if (user.role === 'admin') {
+      sendAdminLoginAlert(user.email, user.name, req.ip); // fire and forget
+    }
     res.json({ user: publicUser(user), token });
   } catch (err) {
     next(err);
@@ -146,6 +149,7 @@ export const updateProfile = async (req, res, next) => {
       user.password = req.body.password;
     }
     await user.save();
+    if (req.body.password) sendPasswordChangedEmail(user.email, user.name); // fire and forget
     res.json({ user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -214,6 +218,58 @@ export const deleteAddress = async (req, res, next) => {
     applyDefault(user);
     await user.save();
     res.json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/* ---------------- Forgot / reset password ---------------- */
+
+// POST /api/auth/forgot-password  { email, captchaToken }
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    // Always answer the same way — never reveal whether an email exists.
+    if (user) {
+      const otp = crypto.randomInt(100000, 1000000).toString();
+      user.otpHash = hashOtp(otp);
+      user.otpExpires = new Date(Date.now() + OTP_TTL_MS);
+      user.otpAttempts = 0;
+      await user.save();
+      sendPasswordResetEmail(user.email, user.name, otp); // fire and forget
+    }
+    res.json({ message: 'If that email has an account, a reset code is on its way' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/auth/reset-password  { email, otp, password }
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, otp, password } = req.body;
+    const user = await User.findOne({ email }).select('+otpHash +otpExpires +otpAttempts +password');
+    if (!user || !user.otpHash || !user.otpExpires || user.otpExpires < new Date()) {
+      return res.status(400).json({ message: 'Code invalid or expired — request a new one' });
+    }
+    if (user.otpAttempts >= MAX_OTP_ATTEMPTS) {
+      return res.status(429).json({ message: 'Too many wrong attempts — request a new code' });
+    }
+    if (hashOtp(otp) !== user.otpHash) {
+      user.otpAttempts += 1;
+      await user.save();
+      return res.status(400).json({ message: 'That code is incorrect — check and try again' });
+    }
+    user.password = password;
+    user.otpHash = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    user.emailVerified = true; // they just proved control of the inbox
+    await user.save();
+    sendPasswordChangedEmail(user.email, user.name); // fire and forget
+    res.json({ message: 'Password reset — you can log in now' });
   } catch (err) {
     next(err);
   }

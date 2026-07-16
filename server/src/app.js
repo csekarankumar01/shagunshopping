@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
+import { handleRazorpayWebhook } from './controllers/paymentController.js';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 
@@ -40,6 +41,10 @@ app.use(
     credentials: true,
   })
 );
+// Razorpay webhook needs the RAW body for signature verification, so it is
+// mounted before the JSON parser (and therefore also before sanitize/limits).
+app.post('/api/payment/webhook', express.raw({ type: '*/*' }), handleRazorpayWebhook);
+
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 app.use(mongoSanitize()); // strips $ and . keys to block NoSQL injection

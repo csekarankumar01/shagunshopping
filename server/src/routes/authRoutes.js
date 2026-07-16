@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import validate from '../middleware/validate.js';
 import { protect } from '../middleware/auth.js';
-import { register, login, logout, me, updateProfile, verifyOtp, resendOtp, addAddress, updateAddress, deleteAddress } from '../controllers/authController.js';
+import { register, login, logout, me, updateProfile, verifyOtp, resendOtp, addAddress, updateAddress, deleteAddress, forgotPassword, resetPassword } from '../controllers/authController.js';
+import { requireCaptcha } from '../utils/captcha.js';
 
 const router = Router();
 
@@ -15,7 +16,27 @@ router.post(
     body('phone').optional({ values: 'falsy' }).isMobilePhone('en-IN').withMessage('Enter a valid 10-digit phone number'),
   ],
   validate,
+  requireCaptcha,
   register
+);
+
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().withMessage('Enter a valid email').normalizeEmail()],
+  validate,
+  requireCaptcha,
+  forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('email').isEmail().withMessage('Enter a valid email').normalizeEmail(),
+    body('otp').trim().isLength({ min: 6, max: 6 }).isNumeric().withMessage('Enter the 6-digit code'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  validate,
+  resetPassword
 );
 
 router.post(

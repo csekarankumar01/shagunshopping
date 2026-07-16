@@ -216,6 +216,7 @@ export const sendOrderStatusEmail = (to, name, order) => {
        <table style="width:100%;border-collapse:collapse;margin:14px 0;">${itemRows(order)}
          <tr><td style="padding:10px 0;font-size:15px;font-weight:bold;">Total</td><td style="padding:10px 0;font-size:15px;text-align:right;font-weight:bold;color:#8a2d52;">${inr(order.totalPrice)}</td></tr>
        </table>
+       ${order.status === 'shipped' && order.trackingUrl ? `<div style="text-align:center;margin:18px 0;"><a href="${order.trackingUrl}" style="display:inline-block;background:#8a2d52;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:12px 28px;border-radius:999px;">Track your parcel</a></div>` : ''}
        ${order.status === 'shipped' ? addressBlock(order.shippingAddress) : ''}`
     ),
   });
@@ -237,6 +238,61 @@ export const sendOwnerCancelledEmail = (order, customer) => {
        <div style="text-align:center;margin-top:16px;">
          <a href="${ADMIN_ORDERS_URL()}" style="display:inline-block;background:#8a2d52;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:12px 28px;border-radius:999px;">Open admin panel</a>
        </div>`
+    ),
+  });
+};
+
+
+/* ---------------- Security & ops emails ---------------- */
+
+export const sendPasswordResetEmail = (to, name, otp) =>
+  sendMail({
+    to,
+    subject: `${otp} is your ${SHOP()} password reset code`,
+    html: shell(
+      'Reset your password',
+      `<p style="font-size:14px;line-height:1.7;color:#4a3a42;">Hi ${name},</p>
+       <p style="font-size:14px;line-height:1.7;color:#4a3a42;">Use this one-time code to reset your password:</p>
+       <div style="text-align:center;margin:22px 0;">
+         <span style="display:inline-block;background:#f3dad3;color:#6b2140;font-size:32px;font-weight:bold;letter-spacing:10px;padding:14px 26px;border-radius:12px;">${otp}</span>
+       </div>
+       <p style="font-size:13px;line-height:1.7;color:#7d6a72;">The code expires in 10 minutes. If you didn't request this, you can safely ignore this email — your password stays unchanged.</p>`
+    ),
+  });
+
+export const sendPasswordChangedEmail = (to, name) =>
+  sendMail({
+    to,
+    subject: `Your ${SHOP()} password was changed`,
+    html: shell(
+      'Password changed',
+      `<p style="font-size:14px;line-height:1.7;color:#4a3a42;">Hi ${name}, your account password was just changed.</p>
+       <p style="font-size:13px;line-height:1.7;color:#7d6a72;">If this was you, no action is needed. If it wasn't, reset your password immediately using "Forgot password" and call us on ${PHONES}.</p>`
+    ),
+  });
+
+export const sendAdminLoginAlert = (to, name, ip) =>
+  sendMail({
+    to,
+    subject: `Admin login to ${SHOP()} just now`,
+    html: shell(
+      'Admin login alert',
+      `<p style="font-size:14px;line-height:1.7;color:#4a3a42;">The admin account (${name}) just signed in${ip ? ` from IP <strong>${ip}</strong>` : ''}.</p>
+       <p style="font-size:13px;line-height:1.7;color:#7d6a72;">If this wasn't you, change the admin password immediately and rotate JWT_SECRET on the server.</p>`
+    ),
+  });
+
+export const sendOversellAlert = (order) => {
+  const ref = `#${order._id.toString().slice(-6).toUpperCase()}`;
+  return sendMail({
+    to: process.env.OWNER_EMAIL || EMAIL,
+    subject: `ACTION NEEDED: order ${ref} paid but stock was short`,
+    html: shell(
+      `Order ${ref} needs your attention`,
+      `<p style="font-size:14px;line-height:1.7;color:#4a3a42;">
+         This order was <strong>paid successfully</strong>, but one or more items ran out of stock between order creation and payment confirmation.
+         The order is marked paid — please either source the item, ship a substitute after calling the customer, or issue a refund from the Razorpay dashboard.
+       </p>`
     ),
   });
 };

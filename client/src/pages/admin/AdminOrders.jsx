@@ -24,7 +24,18 @@ const AdminOrders = () => {
 
   const updateStatus = async (order, next) => {
     try {
-      await api.put(`/orders/${order._id}/status`, { status: next });
+      const payload = { status: next };
+      if (next === 'shipped') {
+        // Paste the Shiprocket/courier tracking link — optional, customer
+        // gets it on the order page and in the shipped email.
+        const trackingUrl = window.prompt(
+          'Tracking link for the customer (optional — paste from courier, or leave blank):',
+          order.trackingUrl || ''
+        );
+        if (trackingUrl === null) return; // admin cancelled the prompt
+        if (trackingUrl.trim()) payload.trackingUrl = trackingUrl.trim();
+      }
+      await api.put(`/orders/${order._id}/status`, payload);
       toast(`Order ${shortId(order._id)} marked ${STATUS_META[next].label.toLowerCase()}`);
       load();
     } catch (e) {
@@ -86,6 +97,11 @@ const AdminOrders = () => {
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${o.isPaid ? 'bg-sage-soft text-sage' : 'bg-blush text-mulberry-deep'}`}>
                         {o.paymentMethod === 'cod' ? (o.isPaid ? 'COD · collected' : 'COD') : o.isPaid ? 'Paid' : 'Unpaid'}
                       </span>
+                      {o.status === 'cancelled' && o.isPaid && (
+                        <span className="ml-1.5 rounded-full bg-blush px-2.5 py-1 text-xs font-bold text-mulberry-deep">
+                          Refund due
+                        </span>
+                      )}
                     </td>
                     <td className="p-4">
                       {o.status === 'pending_payment' ? (
