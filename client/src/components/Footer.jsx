@@ -47,10 +47,18 @@ const Footer = () => (
       </div>
     </div>
     <div className="border-t border-line py-4">
-      <p className="container-page text-xs text-muted">
-        © {new Date().getFullYear()} {SHOP_NAME}. All products are 100% genuine. All sales are
-        final — see our <Link to="/policies" className="font-semibold text-mulberry">store policies</Link>.
-      </p>
+      <div className="container-page flex flex-col items-center justify-between gap-4 text-center text-xs text-muted sm:flex-row sm:text-left">
+        <p>
+          © {new Date().getFullYear()} {SHOP_NAME}. All products are 100% genuine. All sales are
+          final — see our <Link to="/policies" className="font-semibold text-mulberry">store policies</Link>.
+        </p>
+        <p className="shrink-0">
+          Developed by <span className="font-medium text-ink">Karan Kumar</span> •{' '}
+          <a href="mailto:cse.karankumar01@gmail.com" className="transition-colors hover:text-mulberry">
+            cse.karankumar01@gmail.com
+          </a>
+        </p>
+      </div>
     </div>
   </footer>
 );

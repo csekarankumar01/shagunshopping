@@ -142,8 +142,8 @@ const Shop = () => {
         </div>
       )}
 
-      <div className="grid gap-10 lg:grid-cols-[200px_1fr]">
-        <aside className={`${showFilters ? 'block' : 'hidden'} card mt-2 p-6 lg:mt-0 lg:block lg:border-0 lg:bg-transparent lg:p-0`}>
+      <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
+        <aside className={`${showFilters ? 'block' : 'hidden'} card mt-2 p-6 lg:mt-0 lg:block lg:border-0 lg:bg-transparent lg:p-0 lg:pr-6 lg:pt-2`}>
           <FilterPanel />
         </aside>
 
