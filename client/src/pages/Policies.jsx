@@ -56,7 +56,9 @@ const Policies = () => (
         </p>
         <p>
           <strong className="text-ink">Cash on Delivery</strong> is available on orders up to{' '}
-          {inr(COD_MAX)} with a {inr(COD_FEE)} COD handling fee. Please keep the exact amount ready —
+          {inr(COD_MAX)}
+          {COD_FEE > 0 ? <> with a {inr(COD_FEE)} COD handling fee</> : <> — no extra COD charges, you pay just the order total</>}
+          . Please keep the exact amount ready —
           our delivery partners collect payment at your door.
         </p>
       </Section>

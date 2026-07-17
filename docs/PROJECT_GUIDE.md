@@ -39,7 +39,7 @@ Rule of thumb for "where would X be?": money → `pricing.js`; anything sent to 
 
 **② Login/session:** bcrypt compare → JWT signed with `JWT_SECRET` → client stores it, axios attaches `Authorization: Bearer <token>` → `protect` middleware verifies and loads `req.user`; `admin` middleware checks role. (We migrated from httpOnly cookies because Safari kills third-party cookies across vercel.app ↔ onrender.com — real bug, real fix.)
 
-**③ COD order:** client sends items+address+method (never prices) → server fetches products, checks `isActive` + stock → `computeTotals(items,'cod')` adds ₹40 fee, applies the ₹1,499 threshold, rejects if subtotal > ₹2,500 cap → **atomic stock decrement** (`bulkWrite` with `stock: {$gte: qty}` filters) → order `processing` → two emails fire-and-forget: customer confirmation + owner alert.
+**③ COD order:** client sends items+address+method (never prices) → server fetches products, checks `isActive` + stock → `computeTotals(items,'cod')` applies the ₹1,499 threshold (COD fee waived), rejects if subtotal > ₹2,500 cap → **atomic stock decrement** (`bulkWrite` with `stock: {$gte: qty}` filters) → order `processing` → two emails fire-and-forget: customer confirmation + owner alert.
 
 **④ Online order:** same start, totals with prepaid threshold → order saved `pending` + Razorpay order created → popup → on success client POSTs the three Razorpay ids to `/payment/verify` → server recomputes `HMAC_SHA256(order_id + "|" + payment_id, RAZORPAY_KEY_SECRET)` and compares to the signature → only then: mark paid, decrement stock, emails.
 
@@ -104,7 +104,7 @@ Razorpay POSTs `payment.captured` to my endpoint; I verify the webhook signature
 
 ### Business/decision questions (your strongest ground)
 **Q: Why a COD fee and dual thresholds?**
-Indian D2C reality: 15–30% of COD parcels get refused (RTO), and each refusal costs two-way freight. The ₹40 fee + a cheaper free-shipping threshold for prepaid shifts customers to the payment method with near-zero RTO — pricing architecture as risk management. I can show the unit-economics table.
+Indian D2C reality: 15–30% of COD parcels get refused (RTO), and each refusal costs two-way freight. A cheaper free-shipping threshold for prepaid (the COD fee is currently waived) shifts customers to the payment method with near-zero RTO — pricing architecture as risk management. I can show the unit-economics table.
 
 **Q: Why no returns?**
 Cosmetics can't be restocked once opened — hygiene and authenticity. Policy is all-sales-final with a 48-hour make-it-right promise handled personally. That's also exactly how the physical counter worked for 25 years.

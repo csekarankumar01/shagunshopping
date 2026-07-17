@@ -263,7 +263,7 @@ const Checkout = () => {
                   <span className="text-xs text-muted">
                     {codBlocked
                       ? `Available up to ${inr(COD_MAX)} — please pay online for larger orders`
-                      : `Pay when your order arrives · ${inr(COD_FEE)} COD fee`}
+                      : `Pay when your order arrives${COD_FEE > 0 ? ` · ${inr(COD_FEE)} COD fee` : ''}`}
                   </span>
                 </span>
               </label>

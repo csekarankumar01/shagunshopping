@@ -37,7 +37,7 @@ export const BRANDS = [
 // Display-only mirror of the server rules (server/.env is the source of truth)
 export const FREE_SHIPPING_ABOVE = 1499;          // COD free-shipping threshold
 export const FREE_SHIPPING_ABOVE_PREPAID = 1199;  // prepaid free-shipping threshold
-export const COD_FEE = 40;                         // flat COD handling fee
+export const COD_FEE = 0;                          // COD fee waived — customers pay shipping only
 export const COD_MAX = 2500;                       // COD unavailable above this subtotal
 
 // Fill this in once GST registration is done — invoices then show a tax break-up.

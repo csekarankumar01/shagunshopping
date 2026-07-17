@@ -40,7 +40,7 @@ Register form → Turnstile widget issues a token → POST /auth/register {detai
 POST /auth/forgot-password {email, captchaToken} → **responds identically whether the email exists or not** (no account enumeration) → if it exists, a reset OTP is emailed → POST /auth/reset-password {email, otp, newPassword} → same hash/expiry/attempt checks → password updated (bcrypt pre-save hook), `emailVerified` set true (they proved inbox control), password-changed alert emailed. ~90% of the code was already there from signup OTP — that reuse is itself an interview point.
 
 ### 3.3 Placing an order — the money path
-Client sends **product ids + quantities + address + payment method. Never a price.** Server fetches products from the DB, validates stock and `isActive`, and computes every rupee in `pricing.js`: prepaid free-ship ≥ ₹1,199, COD free-ship ≥ ₹1,499, else ₹49 shipping; COD adds ₹40 fee and is refused above ₹2,500 subtotal.
+Client sends **product ids + quantities + address + payment method. Never a price.** Server fetches products from the DB, validates stock and `isActive`, and computes every rupee in `pricing.js`: prepaid free-ship ≥ ₹1,199, COD free-ship ≥ ₹1,499, else ₹49 shipping; COD adds no extra fee (waived — it's one env variable away if ever needed) and is refused above ₹2,500 subtotal.
 
 **COD:** atomic stock decrement → order created `processing` → confirmation + owner alert emails.
 **Online:** order saved `pending_payment` + Razorpay order created → popup → two independent paths can now confirm it:
@@ -94,7 +94,7 @@ Server-authoritative pricing · timing-safe HMAC compares (payment verify AND we
 
 **The moat:** 25 years of "genuine, below MRP" trust + a walk-in customer base with near-zero acquisition cost (counter QR + WhatsApp) + Meerut same-day delivery. No national D2C brand can copy any of these.
 
-**COD economics (know this table):** ~15–30% of Indian COD parcels get refused (RTO) — two-way freight, zero revenue. The pricing fights it structurally: ₹40 COD fee offsets the courier's cash-handling charge; prepaid's cheaper free-shipping threshold (₹1,199 vs ₹1,499) nudges customers to the payment method with ~0% RTO; the ₹2,500 COD cap blocks the most expensive refusals. Per ₹800 order: prepaid contributes ≈ ₹129; COD ≈ ₹145 *only when completed* — a bad refusal month swings COD negative, which is exactly why the architecture pushes prepaid.
+**COD economics (know this table):** ~15–30% of Indian COD parcels get refused (RTO) — two-way freight, zero revenue. The pricing fights it structurally: the COD fee is currently waived as a conversion choice (the courier's cash-handling charge is absorbed in margin — and because it's env-configured, turning it back on is a dashboard change, not a deploy); prepaid's cheaper free-shipping threshold (₹1,199 vs ₹1,499) still nudges customers to the ~0% RTO method; the ₹2,500 COD cap blocks the most expensive refusals. Per ₹800 order: prepaid contributes ≈ ₹129; COD ≈ ₹105 once a refusal provision is averaged in (the waived fee comes straight out of COD margin) — which is exactly why the architecture still pushes prepaid.
 
 **Growth levers in order of ROI:** convert the counter (QR + WhatsApp, ₹0 CAC) → AOV via free-shipping thresholds and future bundles → prepaid share → RTO control → only then paid ads (geo-locked Meerut +50km, boost the best-performing Instagram Reel first).
 
@@ -137,7 +137,7 @@ Server-authoritative pricing · timing-safe HMAC compares (payment verify AND we
 
 # Part 8 — Numbers to memorize
 
-bcrypt 10 rounds · OTP: 6 digits, 10 min, 5 attempts · JWT 30d · ₹1,199 prepaid / ₹1,499 COD thresholds · ₹49 ship / ₹40 COD fee / ₹2,500 cap · GST 18% inclusive (÷1.18), CGST+SGST intra-UP else IGST · Razorpay ~2% · webhook event: payment.captured · statuses: pending_payment→processing→shipped→delivered|cancelled · upload cap 3 MB · JSON limit 100kb · Render cold start ~30s · stack: React 18, Vite, Tailwind v4, Node 18+, Mongoose 8.
+bcrypt 10 rounds · OTP: 6 digits, 10 min, 5 attempts · JWT 30d · ₹1,199 prepaid / ₹1,499 COD thresholds · ₹49 ship / COD fee waived (env COD_FEE) / ₹2,500 cap · GST 18% inclusive (÷1.18), CGST+SGST intra-UP else IGST · Razorpay ~2% · webhook event: payment.captured · statuses: pending_payment→processing→shipped→delivered|cancelled · upload cap 3 MB · JSON limit 100kb · Render cold start ~30s · stack: React 18, Vite, Tailwind v4, Node 18+, Mongoose 8.
 
 # Part 9 — The 3-minute live demo script
 

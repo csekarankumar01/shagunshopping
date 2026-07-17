@@ -10,7 +10,7 @@ export const getShippingRules = () => ({
   freeAbove: Number(process.env.FREE_SHIPPING_ABOVE || 1499), // COD threshold
   freeAbovePrepaid: Number(process.env.FREE_SHIPPING_ABOVE_PREPAID || 1199),
   fee: Number(process.env.SHIPPING_FEE || 49),
-  codFee: Number(process.env.COD_FEE || 40),
+  codFee: Number(process.env.COD_FEE ?? 0), // currently waived — both methods pay shipping only
   codMax: Number(process.env.COD_MAX || 2500),
 });
 

@@ -55,7 +55,7 @@ Login on an unverified account re-triggers the OTP instead of failing — abando
 ```
 client sends: [{product, qty}], shippingAddress, paymentMethod   ← no prices!
 server: fetch products → validate stock → COMPUTE totals from DB prices
-        (pricing.js: threshold by payment method, COD fee, COD cap)
+        (pricing.js: threshold by payment method, COD cap; COD fee waived)
 COD:      atomic stock decrement → create order(processing)
           → confirmation email + owner alert
 Razorpay: create order(pending) + Razorpay order → client opens popup
@@ -78,7 +78,7 @@ Every send is **fire-and-forget** (`.catch` → log). An email provider outage m
 | Free shipping (prepaid) | ₹1,199 | reward the payment method with ~0% RTO |
 | Free shipping (COD) | ₹1,499 | COD costs courier fee + refusal risk |
 | Flat shipping below | ₹49 | honest partial cost recovery |
-| COD fee | ₹40 | offsets courier COD charge |
+| COD fee | ₹0 (waived; env-configurable) | courier cash charge absorbed in margin |
 | COD cap | ₹2,500 | big refused parcels hurt most |
 
 All env-configurable; the client mirrors them for display but the server recomputes on every order.

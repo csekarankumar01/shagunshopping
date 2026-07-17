@@ -10,7 +10,7 @@ My father has run a multi-brand cosmetic shop in Meerut for 25+ years. This is t
 - Email OTP verification at signup (Resend API) + **Cloudflare Turnstile CAPTCHA** against bots, JWT bearer sessions, full **forgot-password** flow reusing the OTP machinery
 - Razorpay (UPI / cards / netbanking) **with server-to-server payment webhooks** — a paid order confirms even if the customer closes the tab — plus Cash on Delivery with server-verified totals
 - **Idempotent payment finalization**: an atomic status transition guarantees an order is marked paid and stock decremented exactly once, no matter how verify/webhook/retries race
-- COD economics built in: ₹40 COD fee, prepaid gets a lower free-shipping threshold (₹1,199 vs ₹1,499), COD capped at ₹2,500 (RTO protection)
+- COD economics built in: no COD fee — both payment methods pay shipping only; prepaid unlocks free shipping earlier (₹1,199 vs ₹1,499); COD capped at ₹2,500 (RTO protection)
 - Automated email lifecycle: OTP → welcome → order confirmation → shipped (with **courier tracking link**) → delivered, plus instant owner alerts, refund flags on cancelled paid orders, admin-login alerts, and password-change notices
 - Printable GST-ready invoices (browser print-to-PDF, zero server PDF deps)
 - Customer accounts: profile, saved addresses auto-filling checkout, preferred payment

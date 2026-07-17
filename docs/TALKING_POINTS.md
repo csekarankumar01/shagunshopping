@@ -65,4 +65,4 @@ Saying "here's my ranked backlog and why" in an interview is worth more than any
 
 ## 7. One-page cheat: numbers to memorize
 
-JWT expiry & bcrypt rounds (10) · OTP: 6 digits, 10 min, 5 attempts · shipping: ₹1199 prepaid / ₹1499 COD / ₹49 fee / ₹40 COD fee / ₹2500 cap · GST 18% inclusive, CGST+SGST intra-UP else IGST · Razorpay fee ~2% · Render cold start ~30s · 43 products, 18 brands · stack versions (React 18, Node 18+, Tailwind v4, Mongoose 8).
+JWT expiry & bcrypt rounds (10) · OTP: 6 digits, 10 min, 5 attempts · shipping: ₹1199 prepaid / ₹1499 COD / ₹49 fee / COD fee waived / ₹2500 cap · GST 18% inclusive, CGST+SGST intra-UP else IGST · Razorpay fee ~2% · Render cold start ~30s · 43 products, 18 brands · stack versions (React 18, Node 18+, Tailwind v4, Mongoose 8).
