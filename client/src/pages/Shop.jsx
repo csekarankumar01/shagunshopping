@@ -59,15 +59,15 @@ const Shop = () => {
   ].filter(Boolean);
 
   const FilterPanel = () => (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
-        <p className="eyebrow mb-3">Category</p>
-        <div className="flex flex-wrap gap-2">
+        <p className="eyebrow mb-5">Category</p>
+        <div className="flex flex-wrap gap-3 lg:flex-col lg:items-start lg:gap-3">
           {filters.categories.map((c) => (
             <button
               key={c}
               onClick={() => update({ category: category === c ? '' : c })}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                 category === c
                   ? 'border-mulberry bg-blush text-mulberry'
                   : 'border-line bg-white text-muted hover:border-mulberry/40 hover:text-ink'
@@ -79,13 +79,13 @@ const Shop = () => {
         </div>
       </div>
       <div>
-        <p className="eyebrow mb-3">Brand</p>
-        <div className="flex max-h-80 flex-wrap gap-2 overflow-y-auto pr-1">
+        <p className="eyebrow mb-5">Brand</p>
+        <div className="flex max-h-80 flex-wrap gap-3 overflow-y-auto pr-1 lg:flex-col lg:items-start lg:gap-3">
           {filters.brands.map((b) => (
             <button
               key={b}
               onClick={() => update({ brand: brand === b ? '' : b })}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                 brand === b
                   ? 'border-mulberry bg-blush text-mulberry'
                   : 'border-line bg-white text-muted hover:border-mulberry/40 hover:text-ink'
