@@ -107,7 +107,7 @@ const ProductDetail = () => {
             )}
           </div>
           {product.images.length > 1 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex gap-2">
               {product.images.map((img, i) => (
                 <button
                   key={img}

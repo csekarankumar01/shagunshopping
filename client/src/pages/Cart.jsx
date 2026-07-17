@@ -79,6 +79,12 @@ const Cart = () => {
         <aside className="card h-fit p-5">
           <p className="font-bold">Order summary</p>
           <dl className="mt-4 space-y-2 text-sm">
+            {savings > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted">MRP total</dt>
+                <dd className="text-muted line-through">{inr(subtotal + savings)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-muted">Subtotal</dt>
               <dd className="font-semibold">{inr(subtotal)}</dd>

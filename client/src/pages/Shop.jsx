@@ -62,13 +62,15 @@ const Shop = () => {
     <div className="space-y-8">
       <div>
         <p className="eyebrow mb-3">Category</p>
-        <div className="flex flex-wrap gap-2 lg:flex-col lg:items-start lg:gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {filters.categories.map((c) => (
             <button
               key={c}
               onClick={() => update({ category: category === c ? '' : c })}
-              className={`text-left text-sm font-semibold transition-colors ${
-                category === c ? 'text-mulberry' : 'text-muted hover:text-ink'
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                category === c
+                  ? 'border-mulberry bg-blush text-mulberry'
+                  : 'border-line bg-white text-muted hover:border-mulberry/40 hover:text-ink'
               }`}
             >
               {c}
@@ -78,13 +80,15 @@ const Shop = () => {
       </div>
       <div>
         <p className="eyebrow mb-3">Brand</p>
-        <div className="flex max-h-72 flex-wrap gap-2 overflow-y-auto lg:flex-col lg:items-start lg:gap-1.5">
+        <div className="flex max-h-80 flex-wrap gap-2 overflow-y-auto pr-1">
           {filters.brands.map((b) => (
             <button
               key={b}
               onClick={() => update({ brand: brand === b ? '' : b })}
-              className={`text-left text-sm font-semibold transition-colors ${
-                brand === b ? 'text-mulberry' : 'text-muted hover:text-ink'
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                brand === b
+                  ? 'border-mulberry bg-blush text-mulberry'
+                  : 'border-line bg-white text-muted hover:border-mulberry/40 hover:text-ink'
               }`}
             >
               {b}
@@ -139,7 +143,7 @@ const Shop = () => {
       )}
 
       <div className="grid gap-10 lg:grid-cols-[200px_1fr]">
-        <aside className={`${showFilters ? 'block' : 'hidden'} card p-5 lg:block lg:border-0 lg:bg-transparent lg:p-0`}>
+        <aside className={`${showFilters ? 'block' : 'hidden'} card mt-2 p-6 lg:mt-0 lg:block lg:border-0 lg:bg-transparent lg:p-0`}>
           <FilterPanel />
         </aside>
 

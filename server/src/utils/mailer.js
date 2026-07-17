@@ -120,6 +120,7 @@ export const sendOrderConfirmationEmail = (to, name, order) => {
       </tr>`
     )
     .join('');
+  const mrpTotal = order.orderItems.reduce((sum, it) => sum + (it.mrp ?? it.price) * it.qty, 0);
   const a = order.shippingAddress;
   const shortId = `#${order._id.toString().slice(-6).toUpperCase()}`;
   return sendMail({
@@ -132,6 +133,7 @@ export const sendOrderConfirmationEmail = (to, name, order) => {
          We're packing your order at our Meerut counter and it will be dispatched within 1–2 working days.
        </p>
        <table style="width:100%;border-collapse:collapse;margin:14px 0;">${rows}
+         ${mrpTotal > order.itemsPrice ? `<tr><td style="padding:8px 0;font-size:13px;color:#7d6a72;">MRP total</td><td style="padding:8px 0;font-size:13px;text-align:right;color:#7d6a72;text-decoration:line-through;">${inr(mrpTotal)}</td></tr><tr><td style="padding:2px 0;font-size:13px;font-weight:bold;color:#159A63;">You saved vs MRP</td><td style="padding:2px 0;font-size:13px;text-align:right;font-weight:bold;color:#159A63;">− ${inr(mrpTotal - order.itemsPrice)}</td></tr>` : ''}
          <tr><td style="padding:8px 0;font-size:13px;color:#7d6a72;">Items</td><td style="padding:8px 0;font-size:13px;text-align:right;">${inr(order.itemsPrice)}</td></tr>
          <tr><td style="padding:2px 0;font-size:13px;color:#7d6a72;">Shipping</td><td style="padding:2px 0;font-size:13px;text-align:right;">${order.shippingPrice === 0 ? 'Free' : inr(order.shippingPrice)}</td></tr>
          ${order.codFee ? `<tr><td style="padding:2px 0;font-size:13px;color:#7d6a72;">COD fee</td><td style="padding:2px 0;font-size:13px;text-align:right;">${inr(order.codFee)}</td></tr>` : ''}

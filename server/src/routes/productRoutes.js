@@ -26,7 +26,7 @@ const productRules = [
   body('size').optional().trim().isLength({ max: 40 }),
   body('ingredients').optional().trim().isLength({ max: 2000 }),
   body('howToUse').optional().trim().isLength({ max: 2000 }),
-  body('images').optional().isArray({ max: 20 }).withMessage('Up to 20 images'),
+  body('images').optional().isArray({ max: 4 }).withMessage('Up to 4 images'),
   body('images.*')
     .optional()
     .custom((v) => {

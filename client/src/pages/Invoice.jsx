@@ -132,6 +132,9 @@ const Invoice = () => {
 
         {/* Totals */}
         <div className="ml-auto mt-6 w-full max-w-xs space-y-1.5 text-sm">
+          {saved > 0 && (
+            <div className="flex justify-between"><span className="text-muted">MRP total</span><span className="text-muted line-through">{inr(order.itemsPrice + saved)}</span></div>
+          )}
           <div className="flex justify-between"><span className="text-muted">Items total</span><span>{inr(order.itemsPrice)}</span></div>
           <div className="flex justify-between text-sage"><span>You saved vs MRP</span><span>− {inr(saved)}</span></div>
           <div className="flex justify-between"><span className="text-muted">Shipping</span><span>{order.shippingPrice === 0 ? 'Free' : inr(order.shippingPrice)}</span></div>

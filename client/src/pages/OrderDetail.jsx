@@ -33,6 +33,8 @@ const OrderDetail = () => {
   if (!order) return <Spinner label="Loading order" />;
 
   const meta = STATUS_META[order.status] || STATUS_META.processing;
+  const mrpTotal = order.orderItems.reduce((s, it) => s + (it.mrp ?? it.price) * it.qty, 0);
+  const mrpSaved = mrpTotal - order.itemsPrice;
   const canCancel = ['pending_payment', 'processing'].includes(order.status);
 
   const cancel = async () => {
@@ -98,8 +100,17 @@ const OrderDetail = () => {
         <div className="space-y-1.5 p-4 text-sm">
           <div className="flex justify-between">
             <span className="text-muted">Items</span>
-            <span className="font-semibold">{inr(order.itemsPrice)}</span>
+            <span className="font-semibold">
+              {mrpSaved > 0 && <span className="mr-2 font-normal text-muted line-through">{inr(mrpTotal)}</span>}
+              {inr(order.itemsPrice)}
+            </span>
           </div>
+          {mrpSaved > 0 && (
+            <div className="flex justify-between text-sage">
+              <span>You saved vs MRP</span>
+              <span className="font-bold">− {inr(mrpSaved)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted">Shipping</span>
             <span className="font-semibold">{order.shippingPrice === 0 ? 'Free' : inr(order.shippingPrice)}</span>
