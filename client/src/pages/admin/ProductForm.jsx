@@ -17,7 +17,7 @@ const empty = {
   mrp: '',
   price: '',
   stock: '',
-  images: ['', '', ''],
+  images: [''],
   featured: false,
   isActive: true,
 };
@@ -54,7 +54,7 @@ const ProductForm = () => {
           mrp: p.mrp,
           price: p.price,
           stock: p.stock,
-          images: [p.images[0] || '', p.images[1] || '', p.images[2] || ''],
+          images: p.images.length > 0 ? [...p.images, ''] : [''],
           featured: p.featured,
           isActive: p.isActive,
         });
@@ -185,7 +185,7 @@ const ProductForm = () => {
       </div>
 
       <div>
-        <p className="label">Product photos (up to 3 — artwork shows automatically if empty)</p>
+        <p className="label">Product photos (artwork shows automatically if empty)</p>
         <p className="mb-2 text-xs text-muted">
           Upload a photo from this device (JPG/PNG/WebP, max 3 MB) or paste an image URL.
         </p>
@@ -235,6 +235,13 @@ const ProductForm = () => {
               )}
             </div>
           ))}
+          <button
+            type="button"
+            className="btn-ghost btn-sm mt-2"
+            onClick={() => setForm(f => ({ ...f, images: [...f.images, ''] }))}
+          >
+            + Add another photo
+          </button>
         </div>
       </div>
 
