@@ -53,10 +53,8 @@ const Home = () => {
 
       <BrandMarquee />
 
-      {/* Categories */}
-
       {/* Featured products */}
-      <section className="container-page pb-16">
+      <section className="container-page pt-14 pb-16">
         <div className="mb-10 text-center">
           <h2 className="font-display text-4xl font-black uppercase tracking-tight">Trending Now</h2>
           <Link to="/shop" className="mt-3 inline-block text-xs font-extrabold uppercase tracking-widest text-mulberry hover:text-mulberry-deep">

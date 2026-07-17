@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 
 /*
-  Cloudflare Turnstile widget (the CAPTCHA on signup / password reset).
-  Renders nothing when VITE_TURNSTILE_SITE_KEY is absent, so local dev needs
-  no keys — the server skips verification too when its secret is missing.
-  The script tag is added once and shared by every instance on the page.
+  The CAPTCHA box on signup / password reset (Cloudflare Turnstile).
+  If VITE_TURNSTILE_SITE_KEY isn't set this renders nothing at all — dev
+  works with zero keys, and the server skips verification too. The script
+  tag is injected once and shared, because two widgets fighting over one
+  script load was a fun bug to find.
 */
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;

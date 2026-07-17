@@ -10,6 +10,11 @@ const EMAIL = 'shagunshopping.meerut@gmail.com';
 
 const inr = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
 
+const INSTAGRAM_URL = 'https://www.instagram.com/shagunshoppingcenter/';
+const REVIEW_URL = 'https://g.page/r/CUI8lS1afKfQEBM/review';
+const FREE_SHIP_PREPAID = () => Number(process.env.FREE_SHIPPING_ABOVE_PREPAID || 1199);
+const FREE_SHIP_COD = () => Number(process.env.FREE_SHIPPING_ABOVE || 1499);
+
 /** Shared email shell: simple, inline-styled HTML that renders everywhere. */
 const shell = (title, bodyHtml) => `
 <!doctype html>
@@ -24,7 +29,12 @@ const shell = (title, bodyHtml) => `
       <h1 style="font-size:20px;margin:0 0 14px;">${title}</h1>
       ${bodyHtml}
     </div>
-    <div style="text-align:center;font-size:12px;color:#7d6a72;line-height:1.7;padding-top:20px;">
+    <div style="text-align:center;padding-top:18px;">
+      <a href="${INSTAGRAM_URL}" style="display:inline-block;background:#8a2d52;color:#ffffff;text-decoration:none;font-size:12px;font-weight:bold;padding:9px 18px;border-radius:999px;margin:0 4px;">Follow us on Instagram</a>
+      <a href="${REVIEW_URL}" style="display:inline-block;background:#ffffff;color:#8a2d52;border:1px solid #8a2d52;text-decoration:none;font-size:12px;font-weight:bold;padding:8px 18px;border-radius:999px;margin:0 4px;">★ Rate us on Google</a>
+      <div style="font-size:11px;color:#7d6a72;margin-top:8px;">New arrivals &amp; offers on Instagram · Your review helps our small family shop grow</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:#7d6a72;line-height:1.7;padding-top:14px;">
       ${SHOP()} · ${ADDRESS}<br/>
       ${PHONES} · ${EMAIL}<br/>
       All sales are final — for any inconvenience with your order, call or email us and we'll sort it out.
@@ -88,9 +98,14 @@ export const sendWelcomeEmail = (to, name) =>
        <ul style="font-size:14px;line-height:1.9;color:#4a3a42;padding-left:18px;">
          <li>18 trusted brands, every product genuine &amp; sealed</li>
          <li>Every price below MRP — see your savings on each item</li>
-         <li>Free shipping on orders above ${inr(process.env.FREE_SHIPPING_ABOVE || 999)}</li>
-         <li>Pay by UPI, card, netbanking or Cash on Delivery</li>
+         <li>Free shipping above ${inr(FREE_SHIP_PREPAID())} when you pay online, or above ${inr(FREE_SHIP_COD())} on Cash on Delivery</li>
+         <li>Pay by UPI (GPay / PhonePe / Paytm), card, netbanking or Cash on Delivery</li>
        </ul>
+       <div style="text-align:center;margin:20px 0 6px;">
+         <a href="${INSTAGRAM_URL}" style="display:inline-block;background:#8a2d52;color:#ffffff;text-decoration:none;font-size:13px;font-weight:bold;padding:11px 24px;border-radius:999px;">Follow @shagunshoppingcenter</a>
+       </div>
+       <p style="font-size:12.5px;line-height:1.7;color:#7d6a72;text-align:center;margin:0 0 4px;">Offers, new arrivals and genuine-vs-fake tips — first on Instagram.</p>
+       <p style="font-size:12.5px;line-height:1.7;color:#7d6a72;text-align:center;margin:0;">Shopped with us before at the Meerut counter? <a href="${REVIEW_URL}" style="color:#8a2d52;font-weight:bold;">Leave us a Google review</a> — it means the world to a 25-year-old family shop.</p>
        <p style="font-size:14px;line-height:1.7;color:#4a3a42;">Happy shopping!<br/>— The ${SHOP()} family</p>`
     ),
   });

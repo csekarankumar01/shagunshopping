@@ -1,9 +1,9 @@
-/**
- * Cloudflare Turnstile verification (free CAPTCHA).
- * If TURNSTILE_SECRET_KEY is not set, verification is skipped so local dev
- * works without keys — the widget also hides itself on the client when the
- * site key is absent. Set both keys in production to activate bot protection.
- */
+// Bot protection via Cloudflare Turnstile (their free CAPTCHA).
+// I made it opt-in by env: with no TURNSTILE_SECRET_KEY set, verification is
+// skipped and the widget hides itself on the client, so local dev needs zero
+// setup. In production both keys are set and every signup gets checked.
+// Note it fails CLOSED on network errors — I'd rather block a real user for
+// one retry than let a bot wave through while Cloudflare hiccups.
 export const verifyCaptcha = async (token, ip) => {
   if (!process.env.TURNSTILE_SECRET_KEY) return true; // not configured -> skip
   if (!token) return false;

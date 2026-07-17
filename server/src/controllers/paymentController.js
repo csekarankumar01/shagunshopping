@@ -29,16 +29,16 @@ const timingSafeMatch = (a, b) => {
   return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
 };
 
-/**
- * Mark an order paid EXACTLY ONCE, no matter how many times or from where
- * this is called (browser verify, webhook, retries, double-clicks).
- *
- * The idempotency key is an atomic status transition: only the caller whose
- * findOneAndUpdate matches `status: 'pending_payment'` wins; everyone else
- * sees null and simply returns the already-processed order. The winner then
- * decrements stock (with $gte guards so we can detect a rare oversell) and
- * fires the emails.
- */
+// The heart of payment safety: mark an order paid EXACTLY ONCE, no matter
+// who calls this or how many times (browser verify, webhook, double-clicks,
+// network retries — I got bitten by imagining all of these racing).
+//
+// The trick is that the idempotency key is an atomic status transition:
+// findOneAndUpdate only matches while status is still 'pending_payment', so
+// exactly one caller wins the claim; everyone else gets null and just reads
+// back the already-finalized order. The winner then decrements stock (with
+// $gte guards) and sends the emails. No locks, no flags — Mongo's own
+// document atomicity does the work.
 const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature = '') => {
   const claimed = await Order.findOneAndUpdate(
     { _id: orderId, status: 'pending_payment', isPaid: false },
@@ -115,14 +115,13 @@ export const verifyPayment = async (req, res, next) => {
   }
 };
 
-/**
- * POST /api/payment/webhook  (Razorpay server -> our server)
- * Mounted with express.raw() BEFORE the JSON parser, because the webhook
- * signature is an HMAC of the raw request body. This closes the gap where a
- * customer pays and then closes the tab before the browser verify runs:
- * Razorpay tells us directly, and finalizePaidOrder makes it idempotent with
- * the browser path.
- */
+// POST /api/payment/webhook — Razorpay's server calls OURS directly.
+// This closes the scariest gap I found in my own audit: customer pays, then
+// closes the tab before the browser can call /verify → money taken, order
+// stuck unpaid. Now Razorpay tells us server-to-server.
+// Gotcha that cost me an hour: the webhook signature is an HMAC of the RAW
+// request bytes, so this route is mounted with express.raw() BEFORE the JSON
+// parser in app.js — parse first and the signature never matches.
 export const handleRazorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!secret) {
