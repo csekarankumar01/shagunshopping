@@ -17,7 +17,7 @@ const empty = {
   mrp: '',
   price: '',
   stock: '',
-  images: ['', '', ''],
+  images: [],
   featured: false,
   isActive: true,
 };
@@ -32,9 +32,9 @@ const ProductForm = () => {
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [uploadingSlot, setUploadingSlot] = useState(null);
+  const [uploading, setUploading] = useState(null); // { done, total } while multi-upload runs
   const fileInputRef = useRef(null);
-  const slotRef = useRef(0);
+  const MAX_IMAGES = 25;
 
   useEffect(() => {
     if (!editing) return;
@@ -54,7 +54,7 @@ const ProductForm = () => {
           mrp: p.mrp,
           price: p.price,
           stock: p.stock,
-          images: [p.images[0] || '', p.images[1] || '', p.images[2] || ''],
+          images: Array.isArray(p.images) ? [...p.images] : [],
           featured: p.featured,
           isActive: p.isActive,
         });
@@ -66,29 +66,34 @@ const ProductForm = () => {
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
   const setImage = (i, value) =>
     setForm((f) => ({ ...f, images: f.images.map((img, idx) => (idx === i ? value : img)) }));
+  const removeImage = (i) =>
+    setForm((f) => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }));
+  const addUrlRow = () => setForm((f) => ({ ...f, images: [...f.images, ''] }));
 
-  const pickPhoto = (slot) => {
-    slotRef.current = slot;
-    fileInputRef.current?.click();
-  };
-
-  const uploadPhoto = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file
-    if (!file) return;
-    const slot = slotRef.current;
-    setUploadingSlot(slot);
-    try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const { data } = await api.post('/upload', fd);
-      setImage(slot, data.url);
-      toast('Photo uploaded');
-    } catch (err) {
-      toast(getErrorMessage(err), 'error');
-    } finally {
-      setUploadingSlot(null);
+  const uploadPhotos = async (e) => {
+    const picked = Array.from(e.target.files || []);
+    e.target.value = ''; // allow re-selecting the same files
+    if (!picked.length) return;
+    const room = MAX_IMAGES - form.images.filter(Boolean).length;
+    if (room <= 0) return toast(`Photo limit reached (${MAX_IMAGES} per product)`, 'error');
+    const files = picked.slice(0, room);
+    if (picked.length > room) toast(`Only ${room} more photo(s) allowed — uploading the first ${room}`);
+    setUploading({ done: 0, total: files.length });
+    let ok = 0;
+    for (const file of files) {
+      try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const { data } = await api.post('/upload', fd);
+        setForm((f) => ({ ...f, images: [...f.images, data.url] }));
+        ok++;
+      } catch (err) {
+        toast(`${file.name}: ${getErrorMessage(err)}`, 'error');
+      }
+      setUploading((u) => (u ? { ...u, done: u.done + 1 } : u));
     }
+    setUploading(null);
+    if (ok) toast(`${ok} photo${ok > 1 ? 's' : ''} uploaded`);
   };
 
   const submit = async (e) => {
@@ -187,15 +192,33 @@ const ProductForm = () => {
       <div>
         <p className="label">Product photos (up to 3 — artwork shows automatically if empty)</p>
         <p className="mb-2 text-xs text-muted">
-          Upload a photo from this device (JPG/PNG/WebP, max 3 MB) or paste an image URL.
+          Add up to 25 photos — select multiple files at once (JPG/PNG/WebP, max 3 MB each) or paste image URLs.
         </p>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          multiple
           className="hidden"
-          onChange={uploadPhoto}
+          onChange={uploadPhotos}
         />
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading !== null}
+            className="btn-primary btn-sm"
+          >
+            <Upload size={14} />
+            {uploading ? `Uploading ${uploading.done + 1} of ${uploading.total}…` : 'Upload photos'}
+          </button>
+          <button type="button" onClick={addUrlRow} className="btn-ghost btn-sm" disabled={uploading !== null}>
+            Add by URL
+          </button>
+          <span className="text-xs font-semibold text-muted">
+            {form.images.filter(Boolean).length}/{MAX_IMAGES} — select many files at once
+          </span>
+        </div>
         <div className="space-y-2">
           {form.images.map((img, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -216,23 +239,12 @@ const ProductForm = () => {
               />
               <button
                 type="button"
-                onClick={() => pickPhoto(i)}
-                disabled={uploadingSlot !== null}
-                className="btn-ghost btn-sm shrink-0"
+                onClick={() => removeImage(i)}
+                aria-label={`Remove photo ${i + 1}`}
+                className="shrink-0 rounded-full p-2 text-muted hover:text-mulberry"
               >
-                <Upload size={14} />
-                {uploadingSlot === i ? 'Uploading…' : 'Upload'}
+                <X size={14} />
               </button>
-              {img && (
-                <button
-                  type="button"
-                  onClick={() => setImage(i, '')}
-                  aria-label={`Clear photo ${i + 1}`}
-                  className="shrink-0 rounded-full p-2 text-muted hover:text-mulberry"
-                >
-                  <X size={14} />
-                </button>
-              )}
             </div>
           ))}
         </div>
