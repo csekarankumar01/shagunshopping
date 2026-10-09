@@ -18,8 +18,20 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Manrope:wght@400;500;600;700;800&display=optional">
     </noscript>
     
-    <!-- Optimize Backend API Connection -->
+    <!-- Optimize Backend API Connection & Instant Pre-warm -->
+    <link rel="dns-prefetch" href="https://shagunshopping.onrender.com">
     <link rel="preconnect" href="https://shagunshopping.onrender.com" crossorigin>
+    <script>
+      (function() {
+        try {
+          var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          var origin = isLocal ? '' : 'https://shagunshopping.onrender.com';
+          if (origin) {
+            fetch(origin + '/api/health', { mode: 'cors', keepalive: true }).catch(function(){});
+          }
+        } catch(e) {}
+      })();
+    </script>
     
     <link rel="preload" as="image" href="/shagun_storefront.jpg" fetchpriority="high" />
   </head>

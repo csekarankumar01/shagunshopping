@@ -1,4 +1,5 @@
 import Product, { CATEGORIES } from '../models/Product.js';
+import { productCache, clearProductCache } from '../utils/cache.js';
 
 const escapeRegex = (s = '') => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -7,6 +8,14 @@ export const listProducts = async (req, res, next) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(48, Math.max(1, Number(req.query.limit) || 12));
+
+    const cacheKey = `list:${JSON.stringify(req.query)}`;
+    const cached = productCache.get(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      res.set('X-Cache', 'HIT');
+      return res.json(cached);
+    }
 
     const filter = { isActive: true };
     if (req.query.q) {
@@ -25,14 +34,23 @@ export const listProducts = async (req, res, next) => {
     };
     const sort = sortMap[req.query.sort] || { createdAt: -1 };
 
-    const total = await Product.countDocuments(filter);
-    const products = await Product.find(filter)
-      .select('-reviews -description')
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(limit);
+    // Run count and lean document fetch concurrently for maximum performance
+    const [total, products] = await Promise.all([
+      Product.countDocuments(filter),
+      Product.find(filter)
+        .select('-reviews -description')
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
 
-    res.json({ products, page, pages: Math.ceil(total / limit), total });
+    const result = { products, page, pages: Math.ceil(total / limit), total };
+    productCache.set(cacheKey, result, 600); // cache for 10 min
+
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.set('X-Cache', 'MISS');
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -41,8 +59,21 @@ export const listProducts = async (req, res, next) => {
 // GET /api/products/filters -> brands + categories for the filter UI
 export const getFilters = async (req, res, next) => {
   try {
+    const cacheKey = 'filters';
+    const cached = productCache.get(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800');
+      res.set('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
     const brands = await Product.distinct('brand', { isActive: true });
-    res.json({ brands: brands.sort(), categories: CATEGORIES });
+    const result = { brands: brands.sort(), categories: CATEGORIES };
+    productCache.set(cacheKey, result, 1800); // cache for 30 min
+
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800');
+    res.set('X-Cache', 'MISS');
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -51,11 +82,25 @@ export const getFilters = async (req, res, next) => {
 // GET /api/products/:id
 export const getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const cacheKey = `product:${req.params.id}`;
+    const cached = productCache.get(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      res.set('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
+    const product = await Product.findById(req.params.id).lean();
     if (!product || !product.isActive) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json({ product });
+
+    const result = { product };
+    productCache.set(cacheKey, result, 600);
+
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.set('X-Cache', 'MISS');
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -85,6 +130,8 @@ export const addReview = async (req, res, next) => {
     product.rating =
       product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length;
     await product.save();
+
+    clearProductCache();
     res.status(201).json({ message: 'Review added', product });
   } catch (err) {
     next(err);
@@ -98,7 +145,8 @@ export const adminListProducts = async (req, res, next) => {
   try {
     const products = await Product.find({})
       .select('-reviews')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ products });
   } catch (err) {
     next(err);
@@ -125,6 +173,8 @@ export const createProduct = async (req, res, next) => {
       featured: !!featured,
       isActive: isActive !== false,
     });
+
+    clearProductCache();
     res.status(201).json({ product });
   } catch (err) {
     next(err);
@@ -145,6 +195,8 @@ export const updateProduct = async (req, res, next) => {
       product.images = (req.body.images || []).filter(Boolean);
     }
     await product.save();
+
+    clearProductCache();
     res.json({ product });
   } catch (err) {
     next(err);
@@ -158,6 +210,8 @@ export const deleteProduct = async (req, res, next) => {
     if (!product) return res.status(404).json({ message: 'Product not found' });
     product.isActive = false;
     await product.save();
+
+    clearProductCache();
     res.json({ message: 'Product hidden from the store' });
   } catch (err) {
     next(err);

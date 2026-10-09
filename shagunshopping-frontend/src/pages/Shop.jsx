@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { SlidersHorizontal, X, Search } from 'lucide-react';
+import { SlidersHorizontal, X, Search, Loader2 } from 'lucide-react';
 import api from '../lib/api';
+import {
+  getCachedData,
+  setCachedData,
+  buildCacheKey,
+  fetchSWR,
+  cacheSingleProduct,
+} from '../lib/cache';
 import { BRANDS, CATEGORIES } from '../lib/config';
 import ProductCard from '../components/ProductCard';
 import { Spinner, Empty } from '../components/Spinner';
@@ -15,36 +22,66 @@ const SORTS = [
 
 const Shop = () => {
   const [params, setParams] = useSearchParams();
-  const [data, setData] = useState(null);
-  const [filters, setFilters] = useState({ brands: BRANDS, categories: CATEGORIES });
-  const [showFilters, setShowFilters] = useState(false);
-
   const q = params.get('q') || '';
   const brand = params.get('brand') || '';
   const category = params.get('category') || '';
   const sort = params.get('sort') || 'newest';
+  const page = Number(params.get('page')) || 1;
+
+  // Instant synchronous cache initialization for products and filters
+  const [data, setData] = useState(() => {
+    const key = buildCacheKey('/products', { q, brand, category, sort, page, limit: 12 });
+    return getCachedData(key);
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const [filters, setFilters] = useState(() => {
+    return getCachedData('products:filters') || { brands: BRANDS, categories: CATEGORIES };
+  });
+  const [showFilters, setShowFilters] = useState(false);
   const [searchInput, setSearchInput] = useState(q);
 
   useEffect(() => {
     setSearchInput(q);
   }, [q]);
-  const page = Number(params.get('page')) || 1;
 
   useEffect(() => {
-    api
-      .get('/products/filters')
-      .then(({ data }) => {
-        if (data.brands?.length) setFilters(data);
-      })
-      .catch(() => {});
+    fetchSWR('/products/filters', {}, {
+      onData: (filterData) => {
+        if (filterData?.brands?.length) {
+          setFilters(filterData);
+          setCachedData('products:filters', filterData, 30 * 60 * 1000);
+        }
+      },
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
-    setData(null);
-    api
-      .get('/products', { params: { q, brand, category, sort, page, limit: 12 } })
-      .then(({ data }) => setData(data))
-      .catch(() => setData({ products: [], pages: 0, total: 0 }));
+    const queryParams = { q, brand, category, sort, page, limit: 12 };
+    const cacheKey = buildCacheKey('/products', queryParams);
+    const cached = getCachedData(cacheKey);
+
+    if (cached) {
+      setData(cached);
+      setIsUpdating(false);
+    } else {
+      setIsUpdating(true);
+    }
+
+    fetchSWR(
+      '/products',
+      queryParams,
+      {
+        onData: (freshData) => {
+          setData(freshData);
+          setIsUpdating(false);
+          freshData?.products?.forEach(cacheSingleProduct);
+        },
+      }
+    ).catch(() => {
+      setIsUpdating(false);
+      setData((prev) => prev || { products: [], pages: 0, total: 0 });
+    });
   }, [q, brand, category, sort, page]);
 
   const update = (patch) => {
@@ -171,7 +208,14 @@ const Shop = () => {
           <FilterPanel />
         </aside>
 
-        <div>
+        <div className="relative">
+          {isUpdating && (
+            <div className="sticky top-20 z-20 mb-4 flex justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-mulberry px-3 py-1 text-xs font-bold text-white shadow-md">
+                <Loader2 size={12} className="animate-spin" /> Updating products...
+              </span>
+            </div>
+          )}
           {data === null ? (
             <Spinner label="Finding products" />
           ) : data.products.length === 0 ? (
@@ -182,7 +226,7 @@ const Shop = () => {
             />
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3">
+              <div className={`grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 transition-opacity duration-200 ${isUpdating ? 'opacity-60' : 'opacity-100'}`}>
                 {data.products.map((p) => (
                   <ProductCard key={p._id} product={p} />
                 ))}

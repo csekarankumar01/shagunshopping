@@ -1,0 +1,21 @@
+name: Keep Render Backend Warm
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free tier inactivity sleep (which happens at 15 min)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger anytime
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "Pinging ShagunShopping Render API..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://shagunshopping.onrender.com/api/health")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Warning: Received non-200 status code: $STATUS"
+          else
+            echo "API is awake and healthy!"
+          fi

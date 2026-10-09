@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, Banknote, Truck, ArrowRight } from 'lucide-react';
 import api from '../lib/api';
+import {
+  getCachedData,
+  setCachedData,
+  fetchSWR,
+  cacheSingleProduct,
+  INITIAL_FEATURED_PRODUCTS,
+} from '../lib/cache';
 import { SHOP_NAME, BRANDS, FREE_SHIPPING_ABOVE, SHOP_YEARS } from '../lib/config';
 import BrandMarquee from '../components/BrandMarquee';
 import ProductCard from '../components/ProductCard';
@@ -15,13 +22,28 @@ const TrustChip = ({ icon: Icon, children }) => (
 );
 
 const Home = () => {
-  const [featured, setFeatured] = useState(null);
+  // Initialize synchronously with cached products or curated instant snapshot (0ms)
+  const [featured, setFeatured] = useState(() => {
+    const cached = getCachedData('products:featured_home');
+    return cached?.products || INITIAL_FEATURED_PRODUCTS;
+  });
 
   useEffect(() => {
-    api
-      .get('/products', { params: { featured: 'true', limit: 8 } })
-      .then(({ data }) => setFeatured(data.products))
-      .catch(() => setFeatured([]));
+    fetchSWR(
+      '/products',
+      { featured: 'true', limit: 8 },
+      {
+        onData: (data) => {
+          if (data?.products?.length) {
+            setFeatured(data.products);
+            setCachedData('products:featured_home', data);
+            data.products.forEach(cacheSingleProduct);
+          }
+        },
+      }
+    ).catch(() => {
+      // If error or offline, already showing cached/instant products
+    });
   }, []);
 
   return (

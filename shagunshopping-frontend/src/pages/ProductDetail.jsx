@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, BadgeCheck, Minus, Plus, Trash2 } from 'lucide-react';
 import api, { getErrorMessage } from '../lib/api';
+import { getCachedSingleProduct, cacheSingleProduct, fetchSWR } from '../lib/cache';
 import Swatch from '../components/Swatch';
 import Price from '../components/Price';
 import RatingStars from '../components/RatingStars';
@@ -14,12 +15,16 @@ import { formatDate } from '../lib/format';
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { addItem, items, setQty: setCartQty, removeItem } = useCart();
   const { user } = useAuth();
   const toast = useToast();
 
-  const [product, setProduct] = useState(null);
+  // Instant zero-latency initialization from navigation state or cache
+  const [product, setProduct] = useState(() => {
+    return location.state?.product || getCachedSingleProduct(id) || null;
+  });
   const [error, setError] = useState('');
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
@@ -27,14 +32,30 @@ const ProductDetail = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const loadProduct = () => {
-    api
-      .get(`/products/${id}`)
-      .then(({ data }) => setProduct(data.product))
-      .catch((e) => setError(getErrorMessage(e)));
+    fetchSWR(
+      `/products/${id}`,
+      {},
+      {
+        onData: (data) => {
+          if (data?.product) {
+            setProduct(data.product);
+            cacheSingleProduct(data.product);
+          }
+        },
+      }
+    ).catch((e) => {
+      setProduct((curr) => {
+        if (!curr) setError(getErrorMessage(e));
+        return curr;
+      });
+    });
   };
 
   useEffect(() => {
-    setProduct(null);
+    const initialProduct = location.state?.product || getCachedSingleProduct(id) || null;
+    if (initialProduct) {
+      setProduct(initialProduct);
+    }
     setError('');
     setQty(1);
     setImgIdx(0);
@@ -42,7 +63,7 @@ const ProductDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (error) {
+  if (error && !product) {
     return (
       <div className="container-page py-16">
         <Empty
@@ -58,7 +79,7 @@ const ProductDetail = () => {
   const out = product.stock <= 0;
   const low = !out && product.stock <= 5;
   const maxQty = Math.min(10, product.stock);
-  const alreadyReviewed = user && product.reviews.some((r) => r.user === user._id);
+  const alreadyReviewed = user && (product.reviews || []).some((r) => r.user === user._id);
   const cartItem = items.find((i) => i.id === (product._id || product.id));
 
   const addToBag = () => {
@@ -85,7 +106,7 @@ const ProductDetail = () => {
     }
   };
 
-  const gallery = product.images.length > 0 ? product.images : [null];
+  const gallery = (product.images && product.images.length > 0) ? product.images : [null];
 
   return (
     <div className="container-page py-10">
@@ -232,12 +253,12 @@ const ProductDetail = () => {
       <section className="mt-16 max-w-2xl">
         <h2 className="font-display text-3xl font-semibold">Reviews</h2>
 
-        {product.reviews.length === 0 ? (
+        {(!product.reviews || product.reviews.length === 0) ? (
           <p className="mt-3 text-sm text-muted">Be the first to review this product.</p>
         ) : (
           <ul className="mt-6 space-y-5">
             {product.reviews.map((r) => (
-              <li key={r._id} className="card p-4">
+              <li key={r._id || `${r.name}-${r.createdAt}`} className="card p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold">{r.name}</p>
                   <span className="text-xs text-muted">{formatDate(r.createdAt)}</span>

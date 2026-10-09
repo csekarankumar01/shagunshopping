@@ -1,5 +1,6 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import { clearProductCache } from '../utils/cache.js';
 import { computeTotals, getShippingRules } from '../utils/pricing.js';
 import { getRazorpay } from './paymentController.js';
 import {
@@ -22,6 +23,7 @@ const decrementStock = async (items) => {
     },
   }));
   const result = await Product.bulkWrite(ops);
+  if (result.modifiedCount > 0) clearProductCache();
   return result.modifiedCount === items.length;
 };
 
@@ -33,6 +35,7 @@ const restoreStock = async (items) => {
     },
   }));
   await Product.bulkWrite(ops);
+  clearProductCache();
 };
 
 // POST /api/orders

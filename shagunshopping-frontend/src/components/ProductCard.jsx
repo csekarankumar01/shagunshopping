@@ -5,6 +5,7 @@ import Price from './Price';
 import RatingStars from './RatingStars';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { cacheSingleProduct } from '../lib/cache';
 
 const ProductCard = ({ product }) => {
   const { addItem, items, setQty, removeItem } = useCart();
@@ -35,6 +36,8 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/product/${product._id}`}
+      state={{ product }}
+      onClick={() => cacheSingleProduct(product)}
       className="card group flex flex-col overflow-hidden transition-shadow hover:shadow-lg hover:shadow-mulberry/10"
     >
       <div className="relative aspect-square overflow-hidden">
