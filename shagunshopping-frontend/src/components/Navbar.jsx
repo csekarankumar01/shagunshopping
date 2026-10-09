@@ -21,8 +21,11 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-white/75 backdrop-blur-xl">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-6">
-        <Link to="/" className="font-display text-[28px] font-black tracking-tight text-ink flex items-baseline">
-          ShagunShopping<span className="text-mulberry ml-[2px] text-3xl leading-none">.</span>
+        <Link to="/" className="font-display text-[24px] sm:text-[26px] font-black tracking-tight text-ink flex items-center gap-2.5">
+          <img src="/logo.svg" alt="Shagun Shopping Logo" className="h-8 w-8 rounded-xl shadow-xs object-cover" />
+          <span className="flex items-baseline">
+            Shagun Shopping<span className="text-mulberry ml-[2px] text-2xl leading-none">.</span>
+          </span>
         </Link>
 
         <form onSubmit={submitSearch} className="hidden flex-1 md:block" role="search">

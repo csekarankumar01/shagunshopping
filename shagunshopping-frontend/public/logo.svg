@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="brandBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#931b5c" />
+      <stop offset="50%" stop-color="#731448" />
+      <stop offset="100%" stop-color="#4a0e38" />
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2A3" />
+      <stop offset="50%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="bagShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background Squircle / Rounded Tile -->
+  <rect width="512" height="512" rx="120" fill="url(#brandBg)" filter="url(#softShadow)" />
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="12" y="12" width="488" height="488" rx="110" fill="none" stroke="url(#goldAccent)" stroke-width="4" stroke-opacity="0.35" />
+
+  <!-- Group for Logo Mark centered -->
+  <g transform="translate(256, 268) scale(0.92)">
+    <!-- Shopping Bag Handle -->
+    <path
+      d="M -70,-80 C -70,-155 70,-155 70,-80"
+      fill="none"
+      stroke="url(#goldAccent)"
+      stroke-width="20"
+      stroke-linecap="round"
+    />
+
+    <!-- Shopping Bag Body -->
+    <path
+      d="M -135,-80 L 135,-80 L 155,145 C 158,168 140,188 116,188 L -116,188 C -140,188 -158,168 -155,145 Z"
+      fill="url(#bagShine)"
+      stroke="url(#goldAccent)"
+      stroke-width="14"
+      stroke-linejoin="round"
+    />
+
+    <!-- Monogram 'S' in Center of Bag -->
+    <!-- Stylized, dynamic, fluid calligraphy 'S' -->
+    <path
+      d="M 50,-18 
+         C 40,-45 15,-52 -18,-52 
+         C -55,-52 -82,-32 -82,-2 
+         C -82,32 -48,46 15,62 
+         C 75,76 86,102 86,128 
+         C 86,166 48,184 -5,184 
+         C -62,184 -85,152 -90,132"
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="26"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Accent stroke on S -->
+    <path
+      d="M 15,62 C 60,73 70,95 70,116"
+      fill="none"
+      stroke="url(#goldAccent)"
+      stroke-width="12"
+      stroke-linecap="round"
+    />
+
+    <!-- Beauty Sparkle / Diamond Star (Top-right of bag) -->
+    <g transform="translate(130, -85) scale(0.9)" filter="url(#glow)">
+      <!-- 4-point Diamond Star -->
+      <path
+        d="M 0,-40 Q 0,0 40,0 Q 0,0 0,40 Q 0,0 -40,0 Q 0,0 0,-40 Z"
+        fill="url(#goldAccent)"
+      />
+      <circle cx="0" cy="0" r="8" fill="#ffffff" />
+    </g>
+
+    <!-- Mini sparkle left -->
+    <g transform="translate(-130, -40) scale(0.45)">
+      <path
+        d="M 0,-30 Q 0,0 30,0 Q 0,0 0,30 Q 0,0 -30,0 Q 0,0 0,-30 Z"
+        fill="url(#goldAccent)"
+      />
+    </g>
+  </g>
+</svg>
