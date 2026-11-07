@@ -1,0 +1,133 @@
+services:
+  # ----------------------------------------------------
+  # Frontend Storefront (React SPA + Nginx)
+  # ----------------------------------------------------
+  frontend:
+    build:
+      context: ./shagunshopping-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5001/api
+    container_name: shagunshopping-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ----------------------------------------------------
+  # Backend API (Node.js 20 Express)
+  # ----------------------------------------------------
+  backend:
+    build:
+      context: ./backend-shagunshopping
+      dockerfile: Dockerfile
+    container_name: shagunshopping-backend
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    env_file:
+      - ./backend-shagunshopping/.env
+    environment:
+      PORT: 5001
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/shagunshopping
+      REDIS_URL: redis://redis:6379
+      KAFKA_BROKERS: kafka:9092
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ----------------------------------------------------
+  # Primary Database (MongoDB 7.0)
+  # ----------------------------------------------------
+  mongo:
+    image: mongo:7.0
+    container_name: shagunshopping-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------
+  # Distributed Caching & Locks (Redis 7.2)
+  # ----------------------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: shagunshopping-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------
+  # Event Bus (Apache Kafka 3.7+ in KRaft mode)
+  # ----------------------------------------------------
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: shagunshopping-kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    restart: unless-stopped
+
+  # ----------------------------------------------------
+  # Kafka UI (Web Console for Topics, Consumer Groups & Messages)
+  # ----------------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: shagunshopping-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: shagunshopping-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  redis_data:
+  kafka_data:
+

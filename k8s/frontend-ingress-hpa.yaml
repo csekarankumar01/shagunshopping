@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shagunshopping-frontend
+  namespace: shagunshopping
+  labels:
+    app: shagunshopping-frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: shagunshopping-frontend
+  template:
+    metadata:
+      labels:
+        app: shagunshopping-frontend
+    spec:
+      containers:
+        - name: frontend-storefront
+          image: shagunshopping-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shagunshopping-frontend
+  namespace: shagunshopping
+spec:
+  selector:
+    app: shagunshopping-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+# Horizontal Pod Autoscaler for Backend API
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shagunshopping-backend-hpa
+  namespace: shagunshopping
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shagunshopping-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# Production Ingress with TLS Termination
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shagunshopping-ingress
+  namespace: shagunshopping
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "15"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+spec:
+  tls:
+    - hosts:
+        - shagunshopping.com
+        - www.shagunshopping.com
+        - api.shagunshopping.com
+      secretName: shagunshopping-tls
+  rules:
+    - host: shagunshopping.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shagunshopping-frontend
+                port:
+                  number: 80
+    - host: www.shagunshopping.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shagunshopping-frontend
+                port:
+                  number: 80
+    - host: api.shagunshopping.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shagunshopping-backend
+                port:
+                  number: 5001
+
