@@ -88,7 +88,7 @@ const DEFAULT_DATA = {
       category: 'Wellness',
       readingTimeMinutes: 3,
       author: 'Kavita Mehta, Beauty Editor',
-      coverImageUrl: 'https://images.unsplash.com/photo-1512290900672-1f41d9c253be?w=800&auto=format&fit=crop&q=80',
+      coverImageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=80',
       categoryLink: '/shop?category=Skincare',
       content: "When you have 30 minutes before a wedding or festive celebration, follow this express skin awakening ritual:\n\n1. 5-Minute Mild Enzyme Polish: Buff away dead skin cells to create an ultra-smooth canvas for makeup.\n2. Ice Roller Awakening: Glide chilled stainless steel over cheekbones and jawline to drain fluid and reduce puffiness.\n3. Kumkumadi Glow Drops: Press 3 drops of pure saffron oil onto high points of cheekbones.\n4. Hyaluronic Plump Cream: Lock in dewy glass-skin bounce that stays luminous all night long.",
       createdAt: new Date().toISOString(),

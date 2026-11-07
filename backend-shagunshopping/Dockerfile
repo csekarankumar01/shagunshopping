@@ -21,13 +21,14 @@ ENV PORT=5001
 # Add curl for container healthchecks
 RUN apk add --no-cache curl
 
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=builder /app/src ./src
+
 # Security: Run as unprivileged node user
+RUN chown -R node:node /app
 USER node
-
-COPY --chown=node:node package*.json ./
-RUN npm ci --only=production && npm cache clean --force
-
-COPY --chown=node:node --from=builder /app/src ./src
 
 EXPOSE 5001
 
