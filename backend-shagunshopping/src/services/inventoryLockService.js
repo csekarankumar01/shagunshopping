@@ -2,7 +2,7 @@ import { getRedisClient, isRedisReady } from '../config/redis.js';
 import Product from '../models/Product.js';
 
 // Lua script for atomic stock reservation (Soft-Lock with TTL)
-// Returns 1 if reservation succeeded, 0 if out of stock
+// Returns 1 if reservation succeeded, 0 if out of stock, -1 if key unseeded
 const RESERVE_LUA = `
 local stock_key = KEYS[1]
 local reservation_key = KEYS[2]
@@ -59,21 +59,29 @@ export class InventoryLockService {
    * Syncs current MongoDB stock for a product into Redis.
    */
   static async syncStock(productId) {
-    const redis = getRedisClient();
-    const product = await Product.findById(productId).select('stock isActive');
-    if (!product || !product.isActive) {
-      await redis.set(this.getStockKey(productId), 0);
+    try {
+      const ready = await isRedisReady();
+      if (!ready) return 0;
+
+      const redis = getRedisClient();
+      const product = await Product.findById(productId).select('stock isActive').lean();
+      if (!product || !product.isActive) {
+        await redis.set(this.getStockKey(productId), 0);
+        return 0;
+      }
+      await redis.set(this.getStockKey(productId), product.stock);
+      return product.stock;
+    } catch (err) {
+      console.warn(`[InventoryLock] Failed to sync stock for product ${productId}: ${err.message}`);
       return 0;
     }
-    await redis.set(this.getStockKey(productId), product.stock);
-    return product.stock;
   }
 
   /**
-   * Attempts to atomically reserve stock for an entire cart of items.
+   * Attempts to atomically reserve stock for an entire cart of items in Redis.
    * If any item is out of stock, all previously reserved items in this call are
    * instantly rolled back, guaranteeing all-or-nothing atomicity.
-   * 
+   *
    * @param {string} orderId Unique order ID / checkout intent ID
    * @param {Array<{ product: string, qty: number }>} items List of items and quantities
    * @param {number} ttlSeconds Hold duration (default 10 minutes = 600s)
@@ -94,12 +102,23 @@ export class InventoryLockService {
       const stockKey = this.getStockKey(pId);
       const resKey = this.getReservationKey(orderId, pId);
 
-      let result = await redis.eval(RESERVE_LUA, 2, stockKey, resKey, item.qty, ttlSeconds);
+      let result;
+      try {
+        result = await redis.eval(RESERVE_LUA, 2, stockKey, resKey, item.qty, ttlSeconds);
+      } catch (redisErr) {
+        console.error(`[InventoryLock] Redis eval error: ${redisErr.message}`);
+        await this.releaseInventory(orderId, successfulReservations);
+        return this.fallbackMongoReserve(items);
+      }
 
       // If Redis key is cold (unseeded), sync from Mongo and retry once
       if (result === -1) {
         await this.syncStock(pId);
-        result = await redis.eval(RESERVE_LUA, 2, stockKey, resKey, item.qty, ttlSeconds);
+        try {
+          result = await redis.eval(RESERVE_LUA, 2, stockKey, resKey, item.qty, ttlSeconds);
+        } catch {
+          result = 0;
+        }
       }
 
       if (result === 1) {
@@ -107,13 +126,13 @@ export class InventoryLockService {
       } else {
         // STOCK RACE DETECTED!
         // Another customer just claimed the last product.
-        // Rollback any items reserved earlier in this cart transaction:
+        // Roll back any items reserved earlier in this cart transaction:
         await this.releaseInventory(orderId, successfulReservations);
 
         return {
           success: false,
           failedProduct: pId,
-          reason: 'Item is currently reserved by another customer or out of stock.',
+          reason: 'One or more items in your cart were just reserved by another customer or are out of stock.',
         };
       }
     }
@@ -126,63 +145,108 @@ export class InventoryLockService {
    * leaves checkout, or payment fails).
    */
   static async releaseInventory(orderId, items) {
-    const ready = await isRedisReady();
-    if (!ready) return;
+    try {
+      const ready = await isRedisReady();
+      if (!ready) return;
 
-    const redis = getRedisClient();
-    for (const item of items) {
-      const pId = String(item.product);
-      const stockKey = this.getStockKey(pId);
-      const resKey = this.getReservationKey(orderId, pId);
+      const redis = getRedisClient();
+      for (const item of items) {
+        const pId = String(item.product);
+        const stockKey = this.getStockKey(pId);
+        const resKey = this.getReservationKey(orderId, pId);
 
-      await redis.eval(RELEASE_LUA, 2, stockKey, resKey);
+        await redis.eval(RELEASE_LUA, 2, stockKey, resKey);
+      }
+    } catch (err) {
+      console.error(`[InventoryLock] Error releasing inventory reservation for ${orderId}: ${err.message}`);
     }
   }
 
   /**
    * Commits the reservation once payment has been captured.
-   * Removes temporary reservation keys and decrements the permanent MongoDB record.
+   * Removes temporary reservation keys in Redis and decrements the primary MongoDB record
+   * with strict $gte stock invariant guards and optional MongoDB session support.
    */
-  static async commitInventory(orderId, items) {
-    const ready = await isRedisReady();
-    if (ready) {
-      const redis = getRedisClient();
-      for (const item of items) {
-        const pId = String(item.product);
-        const resKey = this.getReservationKey(orderId, pId);
-        await redis.eval(COMMIT_LUA, 1, resKey);
+  static async commitInventory(orderId, items, session = null) {
+    // 1. Release the temporary Redis soft locks
+    try {
+      const ready = await isRedisReady();
+      if (ready) {
+        const redis = getRedisClient();
+        for (const item of items) {
+          const pId = String(item.product);
+          const resKey = this.getReservationKey(orderId, pId);
+          await redis.eval(COMMIT_LUA, 1, resKey);
+        }
       }
+    } catch (redisErr) {
+      console.warn(`[InventoryLock] Failed to commit Redis reservation key: ${redisErr.message}`);
     }
 
-    // Persist deduction in primary MongoDB
-    const ops = items.map((it) => ({
-      updateOne: {
-        filter: { _id: it.product },
-        update: { $inc: { stock: -it.qty } },
-      },
-    }));
-    await Product.bulkWrite(ops);
-  }
-
-  /** Fallback for when Redis is disabled or unreachable */
-  static async fallbackMongoReserve(items) {
+    // 2. Persist deduction in primary MongoDB with strict stock invariants
     const ops = items.map((it) => ({
       updateOne: {
         filter: { _id: it.product, stock: { $gte: it.qty } },
         update: { $inc: { stock: -it.qty } },
       },
     }));
-    const result = await Product.bulkWrite(ops);
-    const ok = result.modifiedCount === items.length;
-    if (!ok && result.modifiedCount > 0) {
-      // Revert partial decrements
-      await Product.bulkWrite(
-        items.slice(0, result.modifiedCount).map((it) => ({
-          updateOne: { filter: { _id: it.product }, update: { $inc: { stock: it.qty } } },
-        }))
-      );
+
+    const bulkOptions = session ? { session } : {};
+    const result = await Product.bulkWrite(ops, bulkOptions);
+
+    if ((result.modifiedCount ?? 0) < items.length) {
+      const msg = `[InventoryLock Inconsistency] Order ${orderId}: Expected ${items.length} product stock deductions, but only ${result.modifiedCount} were applied.`;
+      console.error(msg);
+      // If running inside a MongoDB transaction, throwing will abort and roll back completely
+      if (session) {
+        throw new Error(msg);
+      }
     }
-    return { success: ok };
+
+    return result;
+  }
+
+  /**
+   * Fallback for when Redis is disabled or unreachable.
+   * Uses atomic MongoDB operations with verified rollback of successfully decremented items.
+   */
+  static async fallbackMongoReserve(items, session = null) {
+    const executedProductIds = [];
+
+    try {
+      for (const item of items) {
+        const updateQuery = { _id: item.product, stock: { $gte: item.qty } };
+        const updateCommand = { $inc: { stock: -item.qty } };
+        const options = session ? { session, new: true } : { new: true };
+
+        const updated = await Product.findOneAndUpdate(updateQuery, updateCommand, options);
+        if (!updated) {
+          // Failed to claim this item — revert all items previously claimed in this loop
+          for (const rollbackItem of executedProductIds) {
+            await Product.findByIdAndUpdate(
+              rollbackItem.product,
+              { $inc: { stock: rollbackItem.qty } },
+              session ? { session } : {}
+            );
+          }
+          return {
+            success: false,
+            failedProduct: String(item.product),
+            reason: 'Item is out of stock.',
+          };
+        }
+        executedProductIds.push(item);
+      }
+
+      return { success: true };
+    } catch (err) {
+      // Revert on unexpected database failure
+      for (const rollbackItem of executedProductIds) {
+        try {
+          await Product.findByIdAndUpdate(rollbackItem.product, { $inc: { stock: rollbackItem.qty } });
+        } catch (_) {}
+      }
+      return { success: false, reason: err.message };
+    }
   }
 }
-

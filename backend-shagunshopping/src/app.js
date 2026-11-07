@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
+import { checkDatabaseHealth } from './config/db.js';
 import { handleRazorpayWebhook } from './controllers/paymentController.js';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
@@ -84,7 +85,16 @@ app.use('/api', apiLimiter);
 const uploadsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'uploads');
 app.use('/uploads', express.static(uploadsDir, { maxAge: '7d', immutable: true }));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await checkDatabaseHealth();
+  const isHealthy = dbHealth.healthy;
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'ok' : 'degraded',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    database: dbHealth,
+  });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import app from './app.js';
-import connectDB from './config/db.js';
+import connectDB, { closeDatabaseConnection } from './config/db.js';
 import { setupPaymentReconciliation } from './services/reconciliationService.js';
 import { startInventoryConsumer } from './events/inventoryConsumer.js';
 
@@ -31,12 +31,24 @@ const setupKeepAlive = () => {
 
 const start = async () => {
   await connectDB();
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`API running on http://localhost:${PORT} (${process.env.NODE_ENV || 'development'})`);
     setupKeepAlive();
     setupPaymentReconciliation();
     startInventoryConsumer();
   });
+
+  const shutdown = async (signal) => {
+    console.log(`[Server] Received ${signal}. Draining HTTP requests and closing database connections...`);
+    server.close(async () => {
+      await closeDatabaseConnection();
+      console.log('[Server] Graceful shutdown complete.');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 };
 
 start();

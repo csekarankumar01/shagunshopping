@@ -1,89 +1,91 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import Razorpay from 'razorpay';
 import Order from '../models/Order.js';
-import Product from '../models/Product.js';
 import User from '../models/User.js';
 import { InventoryLockService } from '../services/inventoryLockService.js';
 import { publishDomainEvent, TOPICS } from '../events/eventProducer.js';
-import { sendOrderConfirmationEmail, sendOwnerNewOrderEmail, sendOversellAlert } from '../utils/mailer.js';
+import { withTransaction } from '../utils/transaction.js';
+import { sendOrderConfirmationEmail, sendOwnerNewOrderEmail } from '../utils/mailer.js';
 
 let client = null;
 
-/** Lazily create the Razorpay client so the app can boot without keys in dev. */
 export const getRazorpay = () => {
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    const err = new Error('Razorpay keys are not configured on the server');
-    err.statusCode = 500;
-    throw err;
-  }
   if (!client) {
-    client = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!key_id || !key_secret) {
+      throw new Error('Razorpay credentials are not configured in environment');
+    }
+    client = new Razorpay({ key_id, key_secret });
   }
   return client;
 };
 
+// Timing-safe HMAC comparison prevents byte-by-byte timing attacks on the signature
 const timingSafeMatch = (a, b) => {
-  const bufA = Buffer.from(String(a));
-  const bufB = Buffer.from(String(b));
-  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
-};
-
-// The heart of payment safety: mark an order paid EXACTLY ONCE, no matter
-// who calls this or how many times (browser verify, webhook, double-clicks,
-// network retries — I got bitten by imagining all of these racing).
-//
-// The trick is that the idempotency key is an atomic status transition:
-// findOneAndUpdate only matches while status is still 'pending_payment', so
-// exactly one caller wins the claim; everyone else gets null and just reads
-// back the already-finalized order. The winner then decrements stock (with
-// $gte guards) and sends the emails. No locks, no flags — Mongo's own
-// document atomicity does the work.
-export const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature = '') => {
-  const claimed = await Order.findOneAndUpdate(
-    { _id: orderId, status: 'pending_payment', isPaid: false },
-    {
-      $set: {
-        isPaid: true,
-        paidAt: new Date(),
-        status: 'processing',
-        'paymentResult.razorpayPaymentId': razorpayPaymentId,
-        ...(razorpaySignature ? { 'paymentResult.razorpaySignature': razorpaySignature } : {}),
-      },
-    },
-    { new: true }
-  );
-
-  if (!claimed) {
-    // Someone (the webhook or a retry) already finalized it — idempotent no-op.
-    return { order: await Order.findById(orderId), alreadyProcessed: true };
-  }
-
-  // Commit the Redis inventory reservation & persist MongoDB deduction
-  await InventoryLockService.commitInventory(claimed._id.toString(), claimed.orderItems);
-
-  // Emit event to Kafka
-  await publishDomainEvent(TOPICS.PAYMENT_EVENTS, 'PAYMENT_CAPTURED', claimed._id, {
-    orderId: claimed._id,
-    razorpayPaymentId,
-    totalPrice: claimed.totalPrice,
-    items: claimed.orderItems,
-  });
-
-  const buyer = await User.findById(claimed.user).select('name email');
-  if (buyer) {
-    sendOrderConfirmationEmail(buyer.email, buyer.name, claimed); // fire and forget
-    sendOwnerNewOrderEmail(claimed, buyer); // fire and forget
-  }
-  return { order: claimed, alreadyProcessed: false };
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
 };
 
 /**
- * POST /api/payment/verify  (browser callback after the Razorpay popup)
- * Signature = HMAC_SHA256(order_id + "|" + payment_id) with our key secret —
- * recomputing it proves the payment really happened for this exact order.
+ * Idempotent order finalization with ACID multi-document transaction support.
+ *
+ * Atomically transitions order status from 'pending_payment' to 'processing'
+ * and deducts stock in MongoDB with $gte guards. Exactly one caller wins;
+ * any subsequent callers (e.g. webhooks racing with browser verify) safely read
+ * the already-finalized order.
+ */
+export const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature = '') => {
+  return await withTransaction(async (session) => {
+    const claimed = await Order.findOneAndUpdate(
+      { _id: orderId, status: 'pending_payment', isPaid: false },
+      {
+        $set: {
+          isPaid: true,
+          paidAt: new Date(),
+          status: 'processing',
+          'paymentResult.razorpayPaymentId': razorpayPaymentId,
+          ...(razorpaySignature ? { 'paymentResult.razorpaySignature': razorpaySignature } : {}),
+        },
+      },
+      { new: true, session }
+    );
+
+    if (!claimed) {
+      // Already finalized by webhook or concurrent call
+      const existing = session
+        ? await Order.findById(orderId).session(session)
+        : await Order.findById(orderId);
+      return { order: existing, alreadyProcessed: true };
+    }
+
+    // Commit the Redis inventory reservation & persist MongoDB deduction within the transaction
+    await InventoryLockService.commitInventory(claimed._id.toString(), claimed.orderItems, session);
+
+    // Emit event to Kafka
+    await publishDomainEvent(TOPICS.PAYMENT_EVENTS, 'PAYMENT_CAPTURED', claimed._id, {
+      orderId: claimed._id,
+      razorpayPaymentId,
+      totalPrice: claimed.totalPrice,
+      items: claimed.orderItems,
+    });
+
+    const buyerQuery = User.findById(claimed.user).select('name email');
+    const buyer = session ? await buyerQuery.session(session) : await buyerQuery;
+    if (buyer) {
+      sendOrderConfirmationEmail(buyer.email, buyer.name, claimed); // fire and forget
+      sendOwnerNewOrderEmail(claimed, buyer);
+    }
+
+    return { order: claimed, alreadyProcessed: false };
+  });
+};
+
+/**
+ * POST /api/payment/verify (browser callback after the Razorpay popup)
  */
 export const verifyPayment = async (req, res, next) => {
   try {
@@ -94,7 +96,7 @@ export const verifyPayment = async (req, res, next) => {
     if (order.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not allowed' });
     }
-    if (order.paymentResult.razorpayOrderId !== razorpay_order_id) {
+    if (order.paymentResult?.razorpayOrderId !== razorpay_order_id) {
       return res.status(400).json({ message: 'Payment does not match this order' });
     }
 
@@ -113,13 +115,9 @@ export const verifyPayment = async (req, res, next) => {
   }
 };
 
-// POST /api/payment/webhook — Razorpay's server calls OURS directly.
-// This closes the scariest gap I found in my own audit: customer pays, then
-// closes the tab before the browser can call /verify → money taken, order
-// stuck unpaid. Now Razorpay tells us server-to-server.
-// Gotcha that cost me an hour: the webhook signature is an HMAC of the RAW
-// request bytes, so this route is mounted with express.raw() BEFORE the JSON
-// parser in app.js — parse first and the signature never matches.
+/**
+ * POST /api/payment/webhook — Razorpay's server-to-server webhook callback.
+ */
 export const handleRazorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!secret) {
@@ -146,7 +144,7 @@ export const handleRazorpayWebhook = async (req, res) => {
         }
       }
     }
-    // Always 200 fast so Razorpay stops retrying.
+    // Always return 200 fast so Razorpay stops retrying
     res.json({ ok: true });
   } catch (err) {
     console.error('Webhook processing failed:', err.message);

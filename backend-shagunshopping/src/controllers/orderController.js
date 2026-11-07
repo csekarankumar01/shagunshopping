@@ -5,6 +5,7 @@ import { computeTotals, getShippingRules } from '../utils/pricing.js';
 import { getRazorpay } from './paymentController.js';
 import { InventoryLockService } from '../services/inventoryLockService.js';
 import { publishDomainEvent, TOPICS } from '../events/eventProducer.js';
+import { withTransaction } from '../utils/transaction.js';
 import {
   sendOrderConfirmationEmail,
   sendOwnerNewOrderEmail,
@@ -13,38 +14,51 @@ import {
 } from '../utils/mailer.js';
 
 /**
- * Atomically decrement stock for every item. Each update only matches if
- * enough stock is still available, which prevents overselling under
- * concurrent checkouts.
+ * Atomically decrement stock for every item with strict stock >= qty guards.
+ * Supports optional MongoDB transactional session.
  */
-const decrementStock = async (items) => {
+export const decrementStock = async (items, session = null) => {
   const ops = items.map((it) => ({
     updateOne: {
       filter: { _id: it.product, stock: { $gte: it.qty } },
       update: { $inc: { stock: -it.qty } },
     },
   }));
-  const result = await Product.bulkWrite(ops);
+  const bulkOptions = session ? { session } : {};
+  const result = await Product.bulkWrite(ops, bulkOptions);
   if (result.modifiedCount > 0) clearProductCache();
   return result.modifiedCount === items.length;
 };
 
-const restoreStock = async (items) => {
+/**
+ * Restores stock for items (used on cancellation or failed checkout rollback).
+ */
+export const restoreStock = async (items, session = null) => {
   const ops = items.map((it) => ({
     updateOne: {
       filter: { _id: it.product },
       update: { $inc: { stock: it.qty } },
     },
   }));
-  await Product.bulkWrite(ops);
+  const bulkOptions = session ? { session } : {};
+  await Product.bulkWrite(ops, bulkOptions);
   clearProductCache();
 };
 
 // POST /api/orders
-// Body: { items: [{ product, qty }], shippingAddress, paymentMethod: 'cod' | 'razorpay' }
+// Body: { items: [{ product, qty }], shippingAddress, paymentMethod: 'cod' | 'razorpay', idempotencyKey?: string }
 export const createOrder = async (req, res, next) => {
   try {
     const { items, shippingAddress, paymentMethod } = req.body;
+    const idempotencyKey = req.headers['x-idempotency-key'] || req.body.idempotencyKey;
+
+    // Idempotency guard: Return existing order if key was already submitted
+    if (idempotencyKey) {
+      const existing = await Order.findOne({ idempotencyKey, user: req.user._id });
+      if (existing) {
+        return res.status(200).json({ order: existing, isDuplicate: true });
+      }
+    }
 
     // Load live products from DB -- prices are NEVER taken from the client
     const ids = items.map((i) => i.product);
@@ -75,8 +89,7 @@ export const createOrder = async (req, res, next) => {
 
     const totals = computeTotals(orderItems, paymentMethod);
 
-    // COD capped: big COD orders are the ones that get refused at the door
-    // and come back on my shipping bill, so above this amount it's prepaid only
+    // COD capped: big COD orders are prepaid only
     if (paymentMethod === 'cod') {
       const { codMax } = getShippingRules();
       if (totals.itemsPrice > codMax) {
@@ -86,22 +99,33 @@ export const createOrder = async (req, res, next) => {
       }
     }
 
-    // ---- Cash on delivery: confirm immediately ----
+    // ---- Cash on delivery: ACID multi-document transaction ----
     if (paymentMethod === 'cod') {
-      const ok = await decrementStock(orderItems);
-      if (!ok) {
-        return res.status(409).json({ message: 'Stock changed while ordering, please try again' });
-      }
-      const order = await Order.create({
-        user: req.user._id,
-        orderItems,
-        shippingAddress,
-        paymentMethod: 'cod',
-        ...totals,
-        status: 'processing',
+      const order = await withTransaction(async (session) => {
+        const ok = await decrementStock(orderItems, session);
+        if (!ok) {
+          throw new Error('STOCK_UNAVAILABLE');
+        }
+
+        const [created] = await Order.create(
+          [
+            {
+              user: req.user._id,
+              orderItems,
+              shippingAddress,
+              paymentMethod: 'cod',
+              ...totals,
+              status: 'processing',
+              idempotencyKey: idempotencyKey || undefined,
+            },
+          ],
+          { session }
+        );
+        return created;
       });
+
       sendOrderConfirmationEmail(req.user.email, req.user.name, order); // fire and forget
-      sendOwnerNewOrderEmail(order, req.user); // papa gets pinged instantly
+      sendOwnerNewOrderEmail(order, req.user);
       return res.status(201).json({ order });
     }
 
@@ -114,14 +138,22 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
-    const order = await Order.create({
-      user: req.user._id,
-      orderItems,
-      shippingAddress,
-      paymentMethod: 'razorpay',
-      ...totals,
-      status: 'pending_payment',
-    });
+    let order;
+    try {
+      order = await Order.create({
+        user: req.user._id,
+        orderItems,
+        shippingAddress,
+        paymentMethod: 'razorpay',
+        ...totals,
+        status: 'pending_payment',
+        idempotencyKey: idempotencyKey || undefined,
+      });
+    } catch (createErr) {
+      // Abort Redis reservation immediately if MongoDB order creation fails
+      await InventoryLockService.releaseInventory(tempOrderId, orderItems);
+      throw createErr;
+    }
 
     // Re-link the reservation key from temp ID to the permanent order ID
     await InventoryLockService.reserveInventory(order._id.toString(), orderItems, 600);
@@ -154,6 +186,9 @@ export const createOrder = async (req, res, next) => {
       },
     });
   } catch (err) {
+    if (err.message === 'STOCK_UNAVAILABLE') {
+      return res.status(409).json({ message: 'Stock changed while ordering, please try again' });
+    }
     next(err);
   }
 };
@@ -195,9 +230,15 @@ export const cancelOrder = async (req, res, next) => {
       return res.status(400).json({ message: 'This order can no longer be cancelled' });
     }
 
-    // Stock was only reserved for COD orders and paid Razorpay orders
     const stockWasReserved = order.paymentMethod === 'cod' || order.isPaid;
-    if (stockWasReserved) await restoreStock(order.orderItems);
+
+    await withTransaction(async (session) => {
+      if (stockWasReserved) {
+        await restoreStock(order.orderItems, session);
+      }
+      order.status = 'cancelled';
+      await order.save({ session });
+    });
 
     // Also release any active Redis soft-locks for pending orders
     await InventoryLockService.releaseInventory(order._id.toString(), order.orderItems);
@@ -207,9 +248,6 @@ export const cancelOrder = async (req, res, next) => {
       items: order.orderItems,
     });
 
-    order.status = 'cancelled';
-    await order.save();
-    // Note: refunds for paid orders are issued manually from the Razorpay dashboard.
     sendOwnerCancelledEmail(order, req.user); // fire and forget
     res.json({ order });
   } catch (err) {
@@ -240,7 +278,7 @@ export const adminListOrders = async (req, res, next) => {
   }
 };
 
-// PUT /api/orders/:id/status  Body: { status }
+// PUT /api/orders/:id/status  Body: { status, trackingUrl }
 export const updateOrderStatus = async (req, res, next) => {
   try {
     const { status, trackingUrl } = req.body;
@@ -263,7 +301,7 @@ export const updateOrderStatus = async (req, res, next) => {
 
     // Keep the customer in the loop (shipped / delivered / cancelled)
     if (order.user?.email && ['shipped', 'delivered', 'cancelled'].includes(status)) {
-      sendOrderStatusEmail(order.user.email, order.user.name, order); // fire and forget
+      sendOrderStatusEmail(order.user.email, order.user.name, order);
     }
     res.json({ order });
   } catch (err) {

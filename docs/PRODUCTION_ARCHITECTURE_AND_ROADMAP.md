@@ -3,7 +3,7 @@
 > **Document Type:** Enterprise Architecture Specification & Concurrency Audit  
 > **Target Scale:** 20,000+ Concurrent Users / Flash Sales  
 > **Status:** Production Architecture v3.0  
-> **Generated PDF:** [`docs/SYSTEM_DESIGN_AND_PRODUCTION_ROADMAP.pdf`](file:///Users/apple/Desktop/Karan's MainProject/docs/SYSTEM_DESIGN_AND_PRODUCTION_ROADMAP.pdf)
+> **Generated PDF:** [`docs/SYSTEM_DESIGN_AND_PRODUCTION_ROADMAP.pdf`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/docs/SYSTEM_DESIGN_AND_PRODUCTION_ROADMAP.pdf)
 
 ---
 
@@ -118,10 +118,10 @@ Services booted:
 ---
 
 ## 6. Codebase Implementation Map
-- **Redis Connection:** [`backend-shagunshopping/src/config/redis.js`](file:///Users/apple/Desktop/Karan's MainProject/backend-shagunshopping/src/config/redis.js)
-- **Atomic Inventory Lua Engine:** [`backend-shagunshopping/src/services/inventoryLockService.js`](file:///Users/apple/Desktop/Karan's MainProject/backend-shagunshopping/src/services/inventoryLockService.js)
-- **Kafka Configuration:** [`backend-shagunshopping/src/config/kafka.js`](file:///Users/apple/Desktop/Karan's MainProject/backend-shagunshopping/src/config/kafka.js)
-- **Domain Event Producer:** [`backend-shagunshopping/src/events/eventProducer.js`](file:///Users/apple/Desktop/Karan's MainProject/backend-shagunshopping/src/events/eventProducer.js)
-- **Inventory Consumer Group:** [`backend-shagunshopping/src/events/inventoryConsumer.js`](file:///Users/apple/Desktop/Karan's MainProject/backend-shagunshopping/src/events/inventoryConsumer.js)
-- **Docker Compose:** [`docker-compose.yml`](file:///Users/apple/Desktop/Karan's MainProject/docker-compose.yml)
-- **Kubernetes Manifests:** [`k8s/`](file:///Users/apple/Desktop/Karan's MainProject/k8s)
+- **Redis Connection:** [`backend-shagunshopping/src/config/redis.js`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/backend-shagunshopping/src/config/redis.js)
+- **Atomic Inventory Lua Engine:** [`backend-shagunshopping/src/services/inventoryLockService.js`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/backend-shagunshopping/src/services/inventoryLockService.js)
+- **Kafka Configuration:** [`backend-shagunshopping/src/config/kafka.js`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/backend-shagunshopping/src/config/kafka.js)
+- **Domain Event Producer:** [`backend-shagunshopping/src/events/eventProducer.js`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/backend-shagunshopping/src/events/eventProducer.js)
+- **Inventory Consumer Group:** [`backend-shagunshopping/src/events/inventoryConsumer.js`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/backend-shagunshopping/src/events/inventoryConsumer.js)
+- **Docker Compose:** [`docker-compose.yml`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/docker-compose.yml)
+- **Kubernetes Manifests:** [`k8s/`](file:///Users/apple/Downloads/Importants/ShagunShoppinLive/k8s)

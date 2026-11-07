@@ -21,10 +21,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     password: { type: String, required: true, minlength: 6, select: false },
     phone: { type: String, trim: true, default: '' },
-    role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+    role: { type: String, enum: ['customer', 'admin'], default: 'customer', index: true },
     addresses: { type: [addressSchema], default: [] },
     preferredPayment: { type: String, enum: ['razorpay', 'cod'], default: 'razorpay' },
     // Email verification via OTP
@@ -35,6 +36,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// High performance index queries
+userSchema.index({ email: 1, role: 1 });
+userSchema.index({ phone: 1 }, { sparse: true });
+// TTL index: MongoDB automatically purges documents or clears expired OTP fields
+userSchema.index({ otpExpires: 1 }, { expireAfterSeconds: 0, sparse: true });
 
 // Hash password whenever it is created or changed
 userSchema.pre('save', async function (next) {
