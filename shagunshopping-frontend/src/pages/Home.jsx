@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Banknote, Truck, ArrowRight, Sparkles } from 'lucide-react';
+import { BadgeCheck, Banknote, Truck, ArrowRight, Sparkles, X } from 'lucide-react';
 import api from '../lib/api';
-import { getPromotionalBanners, DEFAULT_BANNERS } from '../services/cms';
+import {
+  getPromotionalBanners,
+  getEditorialArticles,
+  DEFAULT_BANNERS,
+  DEFAULT_ARTICLES,
+} from '../services/cms';
 import {
   getCachedData,
   setCachedData,
@@ -29,10 +34,15 @@ const Home = () => {
     return cached?.products || INITIAL_FEATURED_PRODUCTS;
   });
   const [banners, setBanners] = useState(DEFAULT_BANNERS);
+  const [articles, setArticles] = useState(DEFAULT_ARTICLES);
+  const [selectedArticle, setSelectedArticle] = useState(null);
 
   useEffect(() => {
     getPromotionalBanners().then((res) => {
       if (res && res.length) setBanners(res);
+    });
+    getEditorialArticles().then((res) => {
+      if (res && res.length) setArticles(res);
     });
   }, []);
 
@@ -153,6 +163,136 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      {/* Strapi CMS Editorial Articles */}
+      {articles.length > 0 && (
+        <section className="container-page pb-20">
+          <div className="mb-10 text-center">
+            <p className="eyebrow text-mulberry mb-2">Beauty & Skincare Journal</p>
+            <h2 className="font-display text-3xl font-black uppercase tracking-tight md:text-4xl">
+              Editorial Guides & Rituals
+            </h2>
+            <p className="mt-2 text-sm text-muted max-w-lg mx-auto">
+              Expert beauty insights, seasonal regimens, and Ayurvedic rituals crafted by the Shagun editorial team.
+            </p>
+          </div>
+
+          <div className={`grid gap-6 ${articles.length === 1 ? 'grid-cols-1' : articles.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+            {articles.map((article) => (
+              <article
+                key={article.id}
+                onClick={() => setSelectedArticle(article)}
+                className="card group flex flex-col overflow-hidden bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden bg-porcelain">
+                  <img
+                    src={article.coverImageUrl}
+                    alt={article.title}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute top-3.5 left-3.5 rounded-full bg-ink/80 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                    {article.category}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-muted mb-2.5">
+                    <span className="truncate">{article.author}</span>
+                    <span>•</span>
+                    <span className="shrink-0">{article.readingTimeMinutes} min read</span>
+                  </div>
+                  <h3 className="font-display text-lg font-black leading-snug tracking-tight text-ink group-hover:text-mulberry transition-colors">
+                    {article.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted line-clamp-2">
+                    {article.summary}
+                  </p>
+                  <div className="mt-auto pt-4 flex items-center text-xs font-bold text-mulberry gap-1.5 group-hover:translate-x-1 transition-transform">
+                    <span>Read full guide</span>
+                    <ArrowRight size={14} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Editorial Article Reader Modal */}
+      {selectedArticle && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-ink/75 backdrop-blur-md transition-opacity"
+          onClick={() => setSelectedArticle(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-y-auto flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Close Button */}
+            <button
+              type="button"
+              onClick={() => setSelectedArticle(null)}
+              className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-white/90 text-ink hover:bg-white hover:text-mulberry shadow-md transition cursor-pointer"
+              aria-label="Close article"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Hero Image */}
+            <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-porcelain">
+              <img
+                src={selectedArticle.coverImageUrl}
+                alt={selectedArticle.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <span className="absolute bottom-4 left-6 rounded-full bg-mulberry px-3.5 py-1 text-xs font-black uppercase tracking-wider text-white">
+                {selectedArticle.category}
+              </span>
+            </div>
+
+            {/* Article Body */}
+            <div className="p-6 sm:p-8 flex flex-col flex-1">
+              <div className="flex items-center gap-3 text-xs font-semibold text-muted mb-3">
+                <span>By {selectedArticle.author}</span>
+                <span>•</span>
+                <span>{selectedArticle.readingTimeMinutes} min read</span>
+              </div>
+
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-ink tracking-tight leading-tight mb-4">
+                {selectedArticle.title}
+              </h2>
+
+              <div className="p-4 rounded-2xl bg-porcelain/80 border-l-4 border-mulberry text-xs sm:text-sm text-ink/80 italic leading-relaxed mb-6">
+                "{selectedArticle.summary}"
+              </div>
+
+              <div className="text-ink/90 leading-relaxed whitespace-pre-line text-sm">
+                {selectedArticle.content}
+              </div>
+
+              {/* Footer Action Bar */}
+              <div className="mt-8 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-4">
+                <Link
+                  to={selectedArticle.categoryLink || '/shop'}
+                  onClick={() => setSelectedArticle(null)}
+                  className="btn-primary text-xs px-6 py-3"
+                >
+                  Shop Recommended Collection <ArrowRight size={14} className="ml-1.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setSelectedArticle(null)}
+                  className="btn-ghost text-xs"
+                >
+                  Close Guide
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Story + trust */}
       <section className="border-t border-line bg-white">
