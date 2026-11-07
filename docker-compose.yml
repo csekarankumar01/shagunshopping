@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://localhost:5001/api
+        VITE_CMS_URL: http://localhost:1337
     container_name: shagunshopping-frontend
     ports:
       - "3000:80"
@@ -32,7 +33,7 @@ services:
     environment:
       PORT: 5001
       NODE_ENV: production
-      MONGO_URI: mongodb://mongo:27017/shagunshopping
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/shagunshopping}
       REDIS_URL: redis://redis:6379
       KAFKA_BROKERS: kafka:9092
       CLIENT_URL: http://localhost:3000
