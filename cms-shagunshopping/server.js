@@ -168,7 +168,7 @@ const renderLoginPage = (errorMsg = '') => {
           name="email" 
           required 
           autocomplete="email"
-          placeholder="admin@shagunshopping.com" 
+          placeholder="name@example.com" 
           class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition placeholder:text-slate-500"
         />
       </div>
@@ -184,7 +184,7 @@ const renderLoginPage = (errorMsg = '') => {
             name="password" 
             required 
             autocomplete="current-password"
-            placeholder="Enter your password" 
+            placeholder="••••••••" 
             class="w-full px-4 py-3 pr-11 bg-slate-900/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition placeholder:text-slate-500"
           />
           <button 
@@ -301,7 +301,7 @@ const renderAdminDashboard = (admin) => {
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex">
   <!-- Sidebar -->
-  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6 shrink-0">
+  <aside class="w-72 bg-slate-900 text-white flex flex-col justify-between p-6 shrink-0">
     <div>
       <div class="flex items-center gap-3 mb-8">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-purple-500/30">
@@ -319,19 +319,25 @@ const renderAdminDashboard = (admin) => {
           type="button" 
           onclick="switchTab('banners')" 
           id="tab-btn-banners" 
-          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm transition shadow-lg shadow-purple-600/30 cursor-pointer"
+          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm transition shadow-lg shadow-purple-600/30 cursor-pointer"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          Hero Banners (<span id="count-banners">${db.banners.length}</span>)
+          <div class="flex items-center gap-2.5 min-w-0">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span class="truncate whitespace-nowrap">Hero Banners</span>
+          </div>
+          <span id="badge-banners" class="ml-2 px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-purple-500/40 text-purple-100 shrink-0">${db.banners.length}</span>
         </button>
         <button 
           type="button" 
           onclick="switchTab('articles')" 
           id="tab-btn-articles" 
-          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-sm transition cursor-pointer"
+          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-sm transition cursor-pointer"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-          Editorial Articles (<span id="count-articles">${db.articles.length}</span>)
+          <div class="flex items-center gap-2.5 min-w-0">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+            <span class="truncate whitespace-nowrap">Editorial Articles</span>
+          </div>
+          <span id="badge-articles" class="ml-2 px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-slate-800 text-slate-400 shrink-0">${db.articles.length}</span>
         </button>
       </nav>
     </div>
@@ -379,30 +385,33 @@ const renderAdminDashboard = (admin) => {
           <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           Publish New Promotional Banner
         </h3>
-        <form method="POST" action="/admin/banners/create" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Banner Title</label>
-            <input type="text" name="title" required placeholder="Diwali Special Drop" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Subtitle / Offer</label>
-            <input type="text" name="subtitle" placeholder="Flat 25% Off Luxury Fragrances" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Badge Text</label>
-            <input type="text" name="badge" placeholder="LIMITED EDITION" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Target Link</label>
-            <input type="text" name="link" value="/shop?category=Fragrance" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div class="md:col-span-2 flex gap-3 items-end">
-            <div class="flex-1">
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Image URL</label>
-              <input type="url" name="imageUrl" required value="https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1600&auto=format&fit=crop&q=80" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+        <form method="POST" action="/admin/banners/create" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Banner Title</label>
+              <input type="text" name="title" required placeholder="Diwali Special Drop" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
             </div>
-            <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer">
-              + Publish Banner
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Subtitle / Offer</label>
+              <input type="text" name="subtitle" placeholder="Flat 25% Off Luxury Fragrances" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Badge Text</label>
+              <input type="text" name="badge" placeholder="LIMITED EDITION" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Target Link</label>
+              <input type="text" name="link" value="/shop?category=Fragrance" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Image URL</label>
+            <input type="url" name="imageUrl" required value="https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1600&auto=format&fit=crop&q=80" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+          </div>
+          <div class="flex items-center justify-end pt-2 border-t border-slate-100">
+            <button type="submit" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 transition flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              Publish Banner
             </button>
           </div>
         </form>
@@ -435,39 +444,44 @@ const renderAdminDashboard = (admin) => {
           <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           Publish New Beauty & Skincare Article
         </h3>
-        <form method="POST" action="/admin/articles/create" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Article Title</label>
-            <input type="text" name="title" required placeholder="10 Ayurvedic Skincare Secrets for Festive Season" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+        <form method="POST" action="/admin/articles/create" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Article Title</label>
+              <input type="text" name="title" required placeholder="10 Ayurvedic Skincare Secrets for Festive Season" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+              <select name="category" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white">
+                <option value="Skincare">Skincare</option>
+                <option value="Haircare">Haircare</option>
+                <option value="Makeup">Makeup</option>
+                <option value="Ayurveda">Ayurveda</option>
+                <option value="Wellness">Wellness</option>
+              </select>
+            </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
-            <select name="category" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500">
-              <option value="Skincare">Skincare</option>
-              <option value="Haircare">Haircare</option>
-              <option value="Makeup">Makeup</option>
-              <option value="Ayurveda">Ayurveda</option>
-              <option value="Wellness">Wellness</option>
-            </select>
-          </div>
-          <div class="md:col-span-3">
             <label class="block text-xs font-semibold text-slate-600 mb-1">Article Summary / Excerpt</label>
             <textarea name="summary" required rows="2" placeholder="Discover how cold-pressed Kumkumadi and rose water transform dull skin..." class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"></textarea>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Author Name</label>
-            <input type="text" name="author" value="Shagun Editorial" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Estimated Reading Time</label>
-            <input type="number" name="readingTimeMinutes" value="4" min="1" max="60" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
-          </div>
-          <div class="flex gap-3 items-end">
-            <div class="flex-1">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Author Name</label>
+              <input type="text" name="author" value="Shagun Editorial Team" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Estimated Reading Time (mins)</label>
+              <input type="number" name="readingTimeMinutes" value="4" min="1" max="60" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Cover Image URL</label>
               <input type="url" name="coverImageUrl" required value="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop&q=80" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
             </div>
-            <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer">
+          </div>
+          <div class="flex items-center justify-end pt-2 border-t border-slate-100">
+            <button type="submit" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 transition flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
               + Publish Article
             </button>
           </div>
@@ -496,11 +510,23 @@ const renderAdminDashboard = (admin) => {
 
   <!-- Interactive Tab Switching Script -->
   <script>
+    function updateTabButton(btnId, badgeId, isActive) {
+      const btn = document.getElementById(btnId);
+      const badge = document.getElementById(badgeId);
+      if (!btn || !badge) return;
+
+      if (isActive) {
+        btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm transition shadow-lg shadow-purple-600/30 cursor-pointer';
+        badge.className = 'ml-2 px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-purple-500/40 text-purple-100 shrink-0';
+      } else {
+        btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-sm transition cursor-pointer';
+        badge.className = 'ml-2 px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-slate-800 text-slate-400 shrink-0';
+      }
+    }
+
     function switchTab(tab) {
       const viewBanners = document.getElementById('view-banners');
       const viewArticles = document.getElementById('view-articles');
-      const btnBanners = document.getElementById('tab-btn-banners');
-      const btnArticles = document.getElementById('tab-btn-articles');
       const headerTitle = document.getElementById('header-title');
       const headerDesc = document.getElementById('header-desc');
       const inspectBtn = document.getElementById('inspect-api-btn');
@@ -509,8 +535,8 @@ const renderAdminDashboard = (admin) => {
         viewBanners.classList.add('hidden');
         viewArticles.classList.remove('hidden');
 
-        btnArticles.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm transition shadow-lg shadow-purple-600/30 cursor-pointer';
-        btnBanners.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-sm transition cursor-pointer';
+        updateTabButton('tab-btn-articles', 'badge-articles', true);
+        updateTabButton('tab-btn-banners', 'badge-banners', false);
 
         headerTitle.textContent = 'Beauty & Skincare Editorial Articles';
         headerDesc.textContent = 'Publish and manage beauty guides and skincare routines served via Strapi REST API.';
@@ -519,13 +545,17 @@ const renderAdminDashboard = (admin) => {
           inspectBtn.href = '/api/articles';
           inspectBtn.textContent = 'Inspect /api/articles JSON ↗';
         }
-        window.location.hash = 'articles';
+        if (history.replaceState) {
+          history.replaceState(null, '', '#articles');
+        } else {
+          window.location.hash = 'articles';
+        }
       } else {
         viewArticles.classList.add('hidden');
         viewBanners.classList.remove('hidden');
 
-        btnBanners.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm transition shadow-lg shadow-purple-600/30 cursor-pointer';
-        btnArticles.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-sm transition cursor-pointer';
+        updateTabButton('tab-btn-banners', 'badge-banners', true);
+        updateTabButton('tab-btn-articles', 'badge-articles', false);
 
         headerTitle.textContent = 'Promotional Drops & Hero Banners';
         headerDesc.textContent = 'Add or toggle promotional marketing hero drops that update the storefront live.';
@@ -534,7 +564,11 @@ const renderAdminDashboard = (admin) => {
           inspectBtn.href = '/api/banners';
           inspectBtn.textContent = 'Inspect /api/banners JSON ↗';
         }
-        window.location.hash = 'banners';
+        if (history.replaceState) {
+          history.replaceState(null, '', '#banners');
+        } else {
+          window.location.hash = 'banners';
+        }
       }
     }
 

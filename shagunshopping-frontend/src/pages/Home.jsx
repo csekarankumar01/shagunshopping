@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Banknote, Truck, ArrowRight, Sparkles } from 'lucide-react';
+import { BadgeCheck, Banknote, Truck, ArrowRight, Sparkles, BookOpen } from 'lucide-react';
 import api from '../lib/api';
-import { getPromotionalBanners } from '../services/cms';
+import {
+  getPromotionalBanners,
+  getEditorialArticles,
+  DEFAULT_BANNERS,
+  DEFAULT_ARTICLES,
+} from '../services/cms';
 import {
   getCachedData,
   setCachedData,
@@ -28,11 +33,15 @@ const Home = () => {
     const cached = getCachedData('products:featured_home');
     return cached?.products || INITIAL_FEATURED_PRODUCTS;
   });
-  const [banners, setBanners] = useState([]);
+  const [banners, setBanners] = useState(DEFAULT_BANNERS);
+  const [articles, setArticles] = useState(DEFAULT_ARTICLES);
 
   useEffect(() => {
     getPromotionalBanners().then((res) => {
       if (res && res.length) setBanners(res);
+    });
+    getEditorialArticles().then((res) => {
+      if (res && res.length) setArticles(res);
     });
   }, []);
 
@@ -153,6 +162,58 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      {/* Strapi CMS Editorial Articles */}
+      {articles.length > 0 && (
+        <section className="container-page pb-16">
+          <div className="mb-10 text-center">
+            <p className="eyebrow text-mulberry mb-2">Beauty & Skincare Journal</p>
+            <h2 className="font-display text-3xl font-black uppercase tracking-tight md:text-4xl">
+              Editorial Guides & Rituals
+            </h2>
+            <p className="mt-2 text-sm text-muted max-w-lg mx-auto">
+              Expert beauty insights, seasonal regimens, and Ayurvedic rituals crafted by the Shagun editorial team.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {articles.slice(0, 3).map((article) => (
+              <article
+                key={article.id}
+                className="group flex flex-col overflow-hidden rounded-3xl bg-white border border-line shadow-sm transition duration-300 hover:shadow-xl hover:-translate-y-1"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden bg-porcelain">
+                  <img
+                    src={article.coverImageUrl}
+                    alt={article.title}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute top-3.5 left-3.5 rounded-full bg-ink/80 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                    {article.category}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-muted mb-2.5">
+                    <span>{article.author}</span>
+                    <span>•</span>
+                    <span>{article.readingTimeMinutes} min read</span>
+                  </div>
+                  <h3 className="font-display text-lg font-black leading-snug tracking-tight text-ink group-hover:text-mulberry transition-colors">
+                    {article.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted line-clamp-2">
+                    {article.summary}
+                  </p>
+                  <div className="mt-auto pt-4 flex items-center text-xs font-bold text-mulberry gap-1.5 group-hover:translate-x-1 transition-transform">
+                    <span>Read guide</span>
+                    <ArrowRight size={14} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Story + trust */}
       <section className="border-t border-line bg-white">

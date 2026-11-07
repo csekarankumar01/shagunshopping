@@ -3,7 +3,7 @@ import axios from 'axios';
 const CMS_URL = import.meta.env.VITE_CMS_URL || 'http://localhost:1337';
 
 // Default static fallback banners if Strapi CMS is unreachable or cold
-const DEFAULT_BANNERS = [
+export const DEFAULT_BANNERS = [
   {
     id: 1,
     title: 'Festive Glow Collection',
@@ -24,7 +24,7 @@ const DEFAULT_BANNERS = [
   },
 ];
 
-const DEFAULT_ARTICLES = [
+export const DEFAULT_ARTICLES = [
   {
     id: 1,
     title: 'The 5-Step Morning Skincare Ritual for Indian Weather',
@@ -32,7 +32,7 @@ const DEFAULT_ARTICLES = [
     summary: 'How to protect against humidity and UV damage while maintaining natural hydration.',
     category: 'Skincare',
     readingTimeMinutes: 4,
-    author: 'Shagun Editorial',
+    author: 'Shagun Editorial Team',
     coverImageUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&auto=format&fit=crop&q=80',
   },
 ];

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Turnstile, { captchaEnabled } from '../components/Turnstile.jsx';
 import { getErrorMessage } from '../lib/api';
@@ -12,6 +13,7 @@ const Register = () => {
   const next = params.get('next') || '/';
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
@@ -54,7 +56,27 @@ const Register = () => {
           </div>
           <div>
             <label className="label" htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" className="input" required minLength={6} autoComplete="new-password" value={form.password} onChange={onChange} />
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                className="input pr-10"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                value={form.password}
+                onChange={onChange}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors p-1"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <p className="mt-1 text-xs text-muted">At least 6 characters. We'll email you a code to verify your address.</p>
           </div>
           {error && <p className="text-sm font-semibold text-mulberry">{error}</p>}
