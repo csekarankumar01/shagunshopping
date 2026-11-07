@@ -1,0 +1,70 @@
+name: Continuous Integration & Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    name: Backend Syntax & Automated Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-shagunshopping
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend-shagunshopping/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify JavaScript syntax
+        run: |
+          node --check src/server.js
+          node --check src/app.js
+          node --check src/config/db.js
+          node --check src/config/redis.js
+          node --check src/config/kafka.js
+          node --check src/services/inventoryLockService.js
+          node --check src/services/reconciliationService.js
+          node --check src/utils/transaction.js
+
+      - name: Run automated test suite
+        run: npm test
+
+  frontend-build:
+    name: Frontend Production Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: shagunshopping-frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: shagunshopping-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vite production bundle
+        run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          test -f dist/index.html || exit 1
+          echo "Frontend production build verified successfully."

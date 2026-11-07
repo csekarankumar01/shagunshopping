@@ -6,6 +6,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import { checkDatabaseHealth } from './config/db.js';
+import { correlationMiddleware, metrics } from './middleware/correlation.js';
 import { handleRazorpayWebhook } from './controllers/paymentController.js';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
@@ -21,6 +22,8 @@ const app = express();
 
 // Behind a proxy (Render/Railway/Nginx) so secure cookies and IPs work correctly
 app.set('trust proxy', 1);
+
+app.use(correlationMiddleware);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(
@@ -93,6 +96,32 @@ app.get('/api/health', async (req, res) => {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     database: dbHealth,
+  });
+});
+
+app.get('/api/metrics', (req, res) => {
+  const mem = process.memoryUsage();
+  const avgResponseTimeMs =
+    metrics.requestsTotal > 0
+      ? Math.round(metrics.totalResponseTimeMs / metrics.requestsTotal)
+      : 0;
+
+  res.json({
+    uptimeSeconds: Math.floor(process.uptime()),
+    memory: {
+      rssMb: Math.round(mem.rss / 1024 / 1024),
+      heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    requests: {
+      total: metrics.requestsTotal,
+      byStatus: metrics.requestsByStatus,
+      avgLatencyMs: avgResponseTimeMs,
+    },
+    system: {
+      nodeVersion: process.version,
+      pid: process.pid,
+    },
   });
 });
 

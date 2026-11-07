@@ -126,8 +126,28 @@ services:
       - kafka
     restart: unless-stopped
 
+  # ----------------------------------------------------
+  # Strapi Headless CMS (Marketing, Banners & Editorial)
+  # ----------------------------------------------------
+  cms:
+    build:
+      context: ./cms-shagunshopping
+      dockerfile: Dockerfile
+    container_name: shagunshopping-cms
+    ports:
+      - "1337:1337"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 1337
+      NODE_ENV: production
+      DATABASE_FILENAME: .tmp/data.db
+    volumes:
+      - cms_data:/opt/app/.tmp
+    restart: unless-stopped
+
 volumes:
   mongo_data:
   redis_data:
   kafka_data:
+  cms_data:
 

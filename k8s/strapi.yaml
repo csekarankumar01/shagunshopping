@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shagunshopping-cms
+  namespace: shagunshopping
+  labels:
+    app: shagunshopping-cms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shagunshopping-cms
+  template:
+    metadata:
+      labels:
+        app: shagunshopping-cms
+    spec:
+      containers:
+        - name: cms
+          image: shagunshopping-cms:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 1337
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "1337"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shagunshopping-cms
+  namespace: shagunshopping
+spec:
+  selector:
+    app: shagunshopping-cms
+  ports:
+    - port: 1337
+      targetPort: 1337
+  type: ClusterIP

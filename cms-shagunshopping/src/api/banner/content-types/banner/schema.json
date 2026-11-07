@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "banners",
+  "info": {
+    "singularName": "banner",
+    "pluralName": "banners",
+    "displayName": "Promotional Banner",
+    "description": "Storefront marketing hero banners & seasonal drops"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "badge": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string",
+      "default": "/shop"
+    },
+    "imageUrl": {
+      "type": "string",
+      "required": true
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "displayOrder": {
+      "type": "integer",
+      "default": 1
+    }
+  }
+}

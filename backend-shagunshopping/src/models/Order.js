@@ -53,14 +53,12 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: { type: String, enum: ['razorpay', 'cod'], required: true },
     paymentResult: {
       // NOTE: Omit empty string defaults so sparse & unique indexes only index real transactions
-      razorpayOrderId: { type: String, sparse: true },
-      razorpayPaymentId: { type: String, sparse: true },
+      razorpayOrderId: { type: String },
+      razorpayPaymentId: { type: String },
       razorpaySignature: { type: String, default: '' },
     },
     idempotencyKey: {
       type: String,
-      sparse: true,
-      index: true,
     },
     itemsPrice: { type: Number, required: true, min: 0 },
     shippingPrice: { type: Number, required: true, min: 0 },

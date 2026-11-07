@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "articles",
+  "info": {
+    "singularName": "article",
+    "pluralName": "articles",
+    "displayName": "Beauty & Skincare Article",
+    "description": "Editorial guides and skincare routines"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "summary": {
+      "type": "text",
+      "required": true
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "coverImageUrl": {
+      "type": "string"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": ["Skincare", "Haircare", "Makeup", "Ayurveda", "Wellness"],
+      "default": "Skincare"
+    },
+    "readingTimeMinutes": {
+      "type": "integer",
+      "default": 3
+    },
+    "author": {
+      "type": "string",
+      "default": "Shagun Editorial"
+    }
+  }
+}
