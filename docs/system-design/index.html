@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ShagunShopping - System Architecture, HLD & LLD Specification</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 16mm 14mm 18mm 14mm;
+      @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 8pt;
+        color: #94a3b8;
+      }
+      @bottom-left {
+        content: "ShagunShopping Architectural Blueprint (v2.0 Production)";
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 8pt;
+        color: #94a3b8;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.55;
+      font-size: 9.5pt;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+    }
+
+    /* Cover Page */
+    .cover {
+      min-height: 250mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20mm 10mm 15mm 10mm;
+      background: radial-gradient(circle at top right, rgba(244, 63, 94, 0.08), transparent 45%),
+                  radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.06), transparent 50%);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      background: #fdf2f8;
+      color: #be185d;
+      border: 1px solid #fbcfe8;
+      margin-bottom: 12px;
+    }
+
+    .cover-title {
+      font-size: 32pt;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #0f172a;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .cover-title span {
+      background: linear-gradient(135deg, #be185d 0%, #4338ca 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .cover-subtitle {
+      font-size: 13pt;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 25px;
+      line-height: 1.4;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 30px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+
+    .meta-item {
+      font-size: 8.5pt;
+    }
+
+    .meta-label {
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 7.5pt;
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .tech-pill-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 25px;
+    }
+
+    .tech-pill {
+      font-size: 7.5pt;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .tech-pill.docker { background: #e0f2fe; color: #0369a1; }
+    .tech-pill.k8s { background: #e0e7ff; color: #3730a3; }
+    .tech-pill.kafka { background: #fef3c7; color: #92400e; }
+    .tech-pill.redis { background: #fee2e2; color: #991b1b; }
+    .tech-pill.mongo { background: #dcfce7; color: #166534; }
+    .tech-pill.strapi { background: #f3e8ff; color: #6b21a8; }
+    .tech-pill.react { background: #e0f2fe; color: #0284c7; }
+
+    /* Typography & Sections */
+    h1, h2, h3, h4 {
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 16pt;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 6px;
+      margin-top: 26px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2 .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: #be185d;
+      color: white;
+      font-size: 9pt;
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 12pt;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      color: #1e293b;
+    }
+
+    h4 {
+      font-size: 10pt;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+
+    p {
+      margin-bottom: 8px;
+      color: #334155;
+    }
+
+    strong {
+      color: #0f172a;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 10px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* Diagrams & Visual Blocks */
+    .diagram-card {
+      margin: 14px 0;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .diagram-caption {
+      font-size: 8pt;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 8.5pt;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    /* Callout & Alert Boxes */
+    .callout {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .callout-warn {
+      background: #fffbeb;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .callout-success {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #065f46;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 3px;
+      font-size: 9pt;
+    }
+
+    /* Code Blocks */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      background: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #be185d;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.8pt;
+      line-height: 1.45;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .feature-card {
+      padding: 12px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .feature-card h4 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 0;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover">
+    <div>
+      <span class="badge-pill">Enterprise Architectural Blueprint</span>
+      <h1 class="cover-title">ShagunShopping <span>Architecture, HLD & LLD</span></h1>
+      <p class="cover-subtitle">
+        Comprehensive Technical Specification & System Design for High-Throughput E-Commerce, Distributed Caching, Event-Driven Streaming, Container Orchestration, and Headless CMS Integration.
+      </p>
+
+      <div class="tech-pill-container">
+        <span class="tech-pill kafka">Apache Kafka (KRaft)</span>
+        <span class="tech-pill redis">Redis 7.2 In-Memory</span>
+        <span class="tech-pill docker">Docker & Docker Compose</span>
+        <span class="tech-pill k8s">Kubernetes Orchestration</span>
+        <span class="tech-pill mongo">MongoDB 7.0 ACID</span>
+        <span class="tech-pill strapi">Strapi Headless CMS</span>
+        <span class="tech-pill react">React 18 SPA + Vite</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">System Author</div>
+          <div class="meta-value">Lead Systems Architect / Engineering Core</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Target Environment</div>
+          <div class="meta-value">Production Cluster & Local Docker Engine</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Classification</div>
+          <div class="meta-value">Production Grade (Tier-1 Financial Reliability)</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Publication Date</div>
+          <div class="meta-value">November 2026 (Version 2.0.0)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 1: EXECUTIVE OVERVIEW & PROBLEM STATEMENT -->
+  <section>
+    <h2><span class="section-num">1</span> Executive Overview & Problem Space</h2>
+    <p>
+      <strong>ShagunShopping</strong> is a high-volume cosmetics, skincare, and luxury wellness e-commerce platform serving customers across India. The system handles volatile consumer demand patterns—characterized by high-intensity flash sales, seasonal festive traffic surges (e.g., Diwali, Karwa Chauth, New Year), and rapid promotional banner transitions.
+    </p>
+
+    <h3>1.1 Mission-Critical Engineering Challenges</h3>
+    <div class="card-grid">
+      <div class="feature-card">
+        <h4>⚡ Sub-Second Browsing Latency</h4>
+        <p>Shoppers browsing 50+ catalog brands and thousands of cosmetic variations expect immediate response times (< 200ms p95). Querying raw disk databases on every catalog page load causes unviable latency and database CPU exhaustion.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🔒 Zero Overselling & Financial Invariants</h4>
+        <p>During flash sales, hundreds of shoppers attempt to checkout the exact same limited-stock item simultaneously. The platform must mathematically prevent double-spending and overselling without locking the entire database.</p>
+      </div>
+      <div class="feature-card">
+        <h4>📨 Non-Blocking Async Workflows</h4>
+        <p>Order placement triggers transactional emails (Resend), SMS notifications, warehouse push alerts, and audit streaming. These third-party dependencies must never block the customer's checkout completion.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🎨 Decoupled Editorial & Marketing Velocity</h4>
+        <p>Marketing teams require instant autonomy to launch promotional campaigns, hero carousels, and skincare editorial routines through a headless CMS without requiring frontend redeployments or engineering PRs.</p>
+      </div>
+    </div>
+
+    <h3>1.2 Key Architectural Metrics & Scale Targets</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>SLA / Target</th>
+          <th>Architectural Mechanism</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>API Response Time (p95)</strong></td>
+          <td>&lt; 150 ms</td>
+          <td>Redis distributed in-memory cache + HTTP cache headers</td>
+        </tr>
+        <tr>
+          <td><strong>Inventory Check Latency</strong></td>
+          <td>&lt; 5 ms</td>
+          <td>Atomic Redis distributed lock (Redlock) + MongoDB ACID</td>
+        </tr>
+        <tr>
+          <td><strong>Peak Checkout Throughput</strong></td>
+          <td>2,500 orders/sec</td>
+          <td>Horizontal Pod Autoscaler (Kubernetes) + Kafka KRaft Event Bus</td>
+        </tr>
+        <tr>
+          <td><strong>Availability SLA</strong></td>
+          <td>99.95%</td>
+          <td>Multi-replica pods, automated liveness/readiness probes, Docker restart policies</td>
+        </tr>
+        <tr>
+          <td><strong>Overselling Tolerance</strong></td>
+          <td>0 items (Zero tolerance)</td>
+          <td>Redis SETNX lock + MongoDB atomic multi-document transaction</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 2: WHY WE USE KAFKA, REDIS, DOCKER, KUBERNETES -->
+  <section>
+    <h2><span class="section-num">2</span> Deep-Dive: Architectural Technology Justifications</h2>
+    <p>
+      Every infrastructure component in the ShagunShopping architecture addresses a specific bottleneck in high-scale e-commerce systems. Below is the precise justification for each technology selection.
+    </p>
+
+    <!-- KAFKA -->
+    <div class="avoid-break">
+      <h3>2.1 Apache Kafka (KRaft Mode): The Event-Driven Backbone</h3>
+      <p>
+        In traditional monolithic e-commerce platforms, when a shopper clicks <em>"Confirm Order"</em>, the backend synchronously connects to the payment gateway, deducts inventory, calls an external email API, sends a WhatsApp alert, and triggers warehouse logistics.
+      </p>
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ The Synchronous Checkout Anti-Pattern</div>
+        If Resend email API experiences 4 seconds of network jitter, the customer's browser spins. If the email API crashes entirely, the entire checkout transaction fails, resulting in cart abandonment and revenue loss.
+      </div>
+      <p><strong>What Apache Kafka does in ShagunShopping:</strong></p>
+      <ul>
+        <li><strong>Asynchronous Decoupling:</strong> The Express API creates the order, dispatches a persistent event (<code>order.created</code> or <code>payment.captured</code>) to Kafka within <strong>2 milliseconds</strong>, and immediately returns <code>HTTP 201 Created</code> to the user.</li>
+        <li><strong>Durable Replayability & Fault Tolerance:</strong> Kafka writes events to append-only disk segments replicated across partitions. If the notification service or email worker goes down for maintenance, it resumes from its exact consumer offset upon reboot with zero message loss.</li>
+        <li><strong>Peak Traffic Smoothing (Backpressure Buffer):</strong> During sudden traffic spikes (e.g., 10,000 orders in 60 seconds), Kafka absorbs the surge safely, allowing background workers to process notifications and warehouse dispatches at a controlled, steady pace without crashing downstream systems.</li>
+        <li><strong>KRaft Consensus (No ZooKeeper):</strong> Apache Kafka 3.7+ operates in <strong>KRaft mode</strong> (Kafka Raft), managing its own metadata quorum natively. This eliminates the operational fragility, network overhead, and memory consumption of managing a separate ZooKeeper cluster.</li>
+      </ul>
+    </div>
+
+    <!-- REDIS -->
+    <div class="avoid-break" style="margin-top: 20px;">
+      <h3>2.2 Redis 7.2 (Alpine): Distributed In-Memory Store & Locks</h3>
+      <p>
+        MongoDB is optimized for rich document storage and durability on SSDs, but reading from disk takes 5–25ms. Redis operates entirely in RAM, executing queries in <strong>sub-millisecond</strong> latencies (0.2–0.8ms).
+      </p>
+      <p><strong>What Redis does in ShagunShopping:</strong></p>
+      <ul>
+        <li><strong>Distributed Inventory Locking (Redlock / Atomic SETNX):</strong> When multiple users race to purchase the final unit of a product, Redis acquires an atomic lock: <code>SET lock:inventory:&lt;productId&gt; &lt;uuid&gt; NX PX 3000</code>. Only the thread holding the lock executes stock validation, completely eliminating race conditions.</li>
+        <li><strong>Read-Through Catalog Caching:</strong> Product listings (<code>/api/products</code>), category taxonomies, and marketing banners are cached in Redis. 92% of browsing traffic is served directly from RAM without touching the primary database.</li>
+        <li><strong>Idempotency for Payment Webhooks:</strong> Razorpay delivers webhook events under an <em>at-least-once</em> guarantee (potential duplicate deliveries). Redis stores <code>webhook:idempotency:&lt;event_id&gt;</code> with a 24-hour TTL, ensuring payments are never processed twice.</li>
+        <li><strong>Distributed Sliding-Window Rate Limiting:</strong> Enforces token buckets across auth endpoints (preventing brute-force attacks on OTP and login) and cart additions across distributed instances.</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- DOCKER & KUBERNETES -->
+    <div class="avoid-break">
+      <h3>2.3 Docker & Docker Compose: Immutable Containerization</h3>
+      <p>
+        Software development historically suffered from the <em>"works on my machine"</em> discrepancy—discrepancies between macOS arm64 development machines and Linux x86 production servers, different Node.js minor versions, missing system libraries, and divergent database configurations.
+      </p>
+      <p><strong>What Docker does in ShagunShopping:</strong></p>
+      <ul>
+        <li><strong>Immutable Artifacts:</strong> The application code, Node.js 20 runtime, security certificates, and OS dependencies are packaged into lightweight, hardened container images (e.g., Alpine Linux).</li>
+        <li><strong>Multi-Stage Builds:</strong> The <code>Dockerfile</code> compiles dependencies and TypeScript/Vite bundles in a temporary builder stage, then copies only the minimal production artifacts into a hardened runner container executed by an unprivileged system user (<code>USER node</code>).</li>
+        <li><strong>Local Orchestration (Docker Compose):</strong> Standardizes the entire 7-tier stack (Frontend, Backend, Mongo, Redis, Kafka, Kafka-UI, CMS) into a single declarative file (<code>docker-compose.yml</code>), establishing isolated bridge networks, health probes, and persistent volumes locally with one command: <code>docker compose up -d</code>.</li>
+      </ul>
+    </div>
+
+    <div class="avoid-break" style="margin-top: 20px;">
+      <h3>2.4 Kubernetes (K8s): Production Elasticity & Self-Healing</h3>
+      <p>
+        Docker Compose is designed for single-node development. In production, running an enterprise store on a single server introduces a catastrophic <strong>Single Point of Failure (SPOF)</strong>. If that virtual machine reboots or crashes, the entire store goes offline.
+      </p>
+      <p><strong>What Kubernetes provides in ShagunShopping:</strong></p>
+      <ul>
+        <li><strong>Horizontal Pod Autoscaler (HPA):</strong> Continuously monitors CPU and memory consumption. When traffic surges during an ad campaign, K8s automatically scales backend pods from 2 to 10 instances in seconds, scaling down when traffic subsides to optimize cloud spend.</li>
+        <li><strong>Automated Self-Healing:</strong> K8s continuously checks container health via HTTP <code>livenessProbe</code> and <code>readinessProbe</code> endpoints. If a pod deadlocks or experiences an unhandled memory leak, K8s terminates it and spins up a replacement instantly.</li>
+        <li><strong>Zero-Downtime Rolling Updates:</strong> When deploying a new release, Kubernetes spins up new version pods, verifies they pass health checks, smoothly redirects incoming traffic, and terminates old pods without a single dropped customer connection.</li>
+        <li><strong>Ingress & TLS Management:</strong> Routes traffic based on host and path rules (<code>/api/*</code> to Backend pods, <code>/</code> to Frontend Nginx, <code>/admin</code> to CMS), terminating SSL/TLS certificates automatically with Let's Encrypt.</li>
+      </ul>
+    </div>
+
+    <!-- MONGO & STRAPI -->
+    <div class="avoid-break" style="margin-top: 20px;">
+      <h3>2.5 MongoDB 7.0 & Strapi Headless CMS</h3>
+      <ul>
+        <li><strong>MongoDB 7.0 (ACID Transactions):</strong> Cosmetics and beauty products require flexible schema structures (varying shades, botanical ingredients, skin type suitability, safety labels). MongoDB provides document flexibility combined with multi-document ACID transactions (<code>session.startTransaction()</code>) for checkout operations.</li>
+        <li><strong>Strapi Headless CMS:</strong> Separates dynamic promotional content from core commerce code. Marketing teams update homepage hero banners, discounts, and editorial skincare rituals independently, exposed via secured REST endpoints with fallback resilience.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 3: HIGH-LEVEL DESIGN (HLD) -->
+  <section>
+    <h2><span class="section-num">3</span> High-Level Design (HLD)</h2>
+    <p>
+      The ShagunShopping architecture follows a modern, decoupled microservices-ready topology featuring clean network segmentation, multi-layer caching, and asynchronous event distribution.
+    </p>
+
+    <div class="diagram-card avoid-break">
+      <!-- High-Level Architecture Diagram (SVG) -->
+      <svg viewBox="0 0 850 480" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad-client" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#0284c7"/>
+          </linearGradient>
+          <linearGradient id="grad-ingress" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#818cf8"/>
+            <stop offset="100%" stop-color="#4f46e5"/>
+          </linearGradient>
+          <linearGradient id="grad-backend" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f43f5e"/>
+            <stop offset="100%" stop-color="#be185d"/>
+          </linearGradient>
+          <linearGradient id="grad-cache" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f87171"/>
+            <stop offset="100%" stop-color="#dc2626"/>
+          </linearGradient>
+          <linearGradient id="grad-db" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#34d399"/>
+            <stop offset="100%" stop-color="#059669"/>
+          </linearGradient>
+          <linearGradient id="grad-kafka" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </linearGradient>
+          <linearGradient id="grad-cms" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#c084fc"/>
+            <stop offset="100%" stop-color="#7e22ce"/>
+          </linearGradient>
+          <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+          </filter>
+        </defs>
+
+        <!-- Boundary Boxes -->
+        <rect x="10" y="10" width="830" height="460" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+        <text x="30" y="35" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" fill="#64748b">SHAGUNSHOPPING ENTERPRISE TOPOLOGY</text>
+
+        <!-- Clients -->
+        <g transform="translate(40, 70)" filter="url(#shadow)">
+          <rect width="140" height="90" rx="8" fill="url(#grad-client)"/>
+          <text x="70" y="35" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">CLIENT LAYER</text>
+          <text x="70" y="55" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#f0f9ff" text-anchor="middle">React 18 SPA (Desktop)</text>
+          <text x="70" y="70" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#f0f9ff" text-anchor="middle">Mobile Web & PWA</text>
+        </g>
+
+        <!-- Edge Ingress / Cloudflare -->
+        <g transform="translate(240, 70)" filter="url(#shadow)">
+          <rect width="160" height="90" rx="8" fill="url(#grad-ingress)"/>
+          <text x="80" y="35" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">EDGE & INGRESS</text>
+          <text x="80" y="55" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#e0e7ff" text-anchor="middle">Cloudflare CDN / DNS</text>
+          <text x="80" y="70" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#e0e7ff" text-anchor="middle">K8s Nginx Ingress / SSL</text>
+        </g>
+
+        <!-- Connect Client to Ingress -->
+        <line x1="180" y1="115" x2="240" y2="115" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4"/>
+        <polygon points="238,111 246,115 238,119" fill="#94a3b8"/>
+
+        <!-- Core Backend Services -->
+        <g transform="translate(460, 70)" filter="url(#shadow)">
+          <rect width="170" height="90" rx="8" fill="url(#grad-backend)"/>
+          <text x="85" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">API MICROSERVICES</text>
+          <text x="85" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#ffe4e6" text-anchor="middle">Express Node.js 20 Cluster</text>
+          <text x="85" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#ffe4e6" text-anchor="middle">Auth, Cart, Order, Payments</text>
+          <text x="85" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#ffe4e6" text-anchor="middle">Correlation ID & Metrics</text>
+        </g>
+
+        <!-- Connect Ingress to Backend -->
+        <line x1="400" y1="115" x2="460" y2="115" stroke="#94a3b8" stroke-width="2"/>
+        <polygon points="458,111 466,115 458,119" fill="#94a3b8"/>
+
+        <!-- Strapi CMS -->
+        <g transform="translate(680, 70)" filter="url(#shadow)">
+          <rect width="130" height="90" rx="8" fill="url(#grad-cms)"/>
+          <text x="65" y="35" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">HEADLESS CMS</text>
+          <text x="65" y="55" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#f3e8ff" text-anchor="middle">Strapi Engine</text>
+          <text x="65" y="70" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#f3e8ff" text-anchor="middle">Banners & Articles</text>
+        </g>
+
+        <!-- Connect Ingress to CMS -->
+        <path d="M 320 70 L 320 40 L 745 40 L 745 70" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3"/>
+        <polygon points="742,67 745,75 748,67" fill="#a855f7"/>
+
+        <!-- Middle Tier: Redis Cache & Distributed Lock -->
+        <g transform="translate(240, 220)" filter="url(#shadow)">
+          <rect width="160" height="90" rx="8" fill="url(#grad-cache)"/>
+          <text x="80" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">REDIS 7.2 (RAM)</text>
+          <text x="80" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#fee2e2" text-anchor="middle">Distributed Redlock</text>
+          <text x="80" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#fee2e2" text-anchor="middle">Catalog Query Cache</text>
+          <text x="80" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#fee2e2" text-anchor="middle">Rate Limiting Buckets</text>
+        </g>
+
+        <!-- Primary DB: MongoDB 7.0 -->
+        <g transform="translate(460, 220)" filter="url(#shadow)">
+          <rect width="170" height="90" rx="8" fill="url(#grad-db)"/>
+          <text x="85" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">MONGODB 7.0</text>
+          <text x="85" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#ecfdf5" text-anchor="middle">Primary Document Store</text>
+          <text x="85" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#ecfdf5" text-anchor="middle">ACID Transactions</text>
+          <text x="85" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#ecfdf5" text-anchor="middle">Users, Products, Orders</text>
+        </g>
+
+        <!-- Connect Backend to Redis & Mongo -->
+        <line x1="510" y1="160" x2="350" y2="220" stroke="#dc2626" stroke-width="2"/>
+        <line x1="545" y1="160" x2="545" y2="220" stroke="#059669" stroke-width="2"/>
+
+        <!-- Event Streaming: Apache Kafka -->
+        <g transform="translate(460, 360)" filter="url(#shadow)">
+          <rect width="170" height="90" rx="8" fill="url(#grad-kafka)"/>
+          <text x="85" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">APACHE KAFKA (KRaft)</text>
+          <text x="85" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#fef3c7" text-anchor="middle">Event Streaming Bus</text>
+          <text x="85" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#fef3c7" text-anchor="middle">order.created, payment.paid</text>
+          <text x="85" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#fef3c7" text-anchor="middle">Async Consumers & DLQ</text>
+        </g>
+
+        <!-- Connect Backend to Kafka -->
+        <line x1="575" y1="310" x2="575" y2="360" stroke="#d97706" stroke-width="2"/>
+
+        <!-- Downstream Consumer Services -->
+        <g transform="translate(680, 360)" filter="url(#shadow)">
+          <rect width="130" height="90" rx="8" fill="#1e293b"/>
+          <text x="65" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">CONSUMERS</text>
+          <text x="65" y="48" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#cbd5e1" text-anchor="middle">• Resend Email</text>
+          <text x="65" y="63" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#cbd5e1" text-anchor="middle">• SMS / WhatsApp</text>
+          <text x="65" y="78" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#cbd5e1" text-anchor="middle">• Warehouse Alert</text>
+        </g>
+
+        <!-- Connect Kafka to Consumers -->
+        <line x1="630" y1="405" x2="680" y2="405" stroke="#f59e0b" stroke-width="2"/>
+        <polygon points="678,401 686,405 678,409" fill="#f59e0b"/>
+
+        <!-- External Gateway Providers -->
+        <g transform="translate(40, 220)" filter="url(#shadow)">
+          <rect width="140" height="90" rx="8" fill="#0f172a"/>
+          <text x="70" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">EXTERNAL GATEWAYS</text>
+          <text x="70" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#94a3b8" text-anchor="middle">Razorpay (UPI/Cards)</text>
+          <text x="70" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#94a3b8" text-anchor="middle">Cloudflare Turnstile</text>
+          <text x="70" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" fill="#94a3b8" text-anchor="middle">Cloudinary Media CDN</text>
+        </g>
+
+        <!-- Connect Backend to External Gateways -->
+        <path d="M 460 135 L 110 135 L 110 220" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3"/>
+        <polygon points="107,215 110,223 113,215" fill="#64748b"/>
+      </svg>
+      <div class="diagram-caption">Figure 3.1: ShagunShopping End-to-End Enterprise Architecture Topology</div>
+    </div>
+
+    <h3>3.1 Architectural Domains & Bounded Contexts</h3>
+    <ul>
+      <li><strong>Storefront & Edge Domain:</strong> Handles client requests, edge SSL offloading, asset minification, and static routing via Nginx and Vercel CDN.</li>
+      <li><strong>Catalog & Search Domain:</strong> High-speed product retrieval, brand filtering, category hierarchies, and in-memory Redis caching with dynamic invalidation.</li>
+      <li><strong>Order & Inventory Domain:</strong> ACID checkout execution, stock reservation, financial reconciliation, and invariant validation.</li>
+      <li><strong>Payment & Invoicing Domain:</strong> Razorpay order generation, HMAC-SHA256 webhook validation, and idempotency guarantees.</li>
+      <li><strong>Event Streaming Domain:</strong> Kafka KRaft partitioned log distributing non-blocking notifications and audit metrics.</li>
+      <li><strong>Marketing & Editorial Domain:</strong> Strapi Headless CMS powering promotional hero carousels and beauty guides.</li>
+    </ul>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 4: LOW-LEVEL DESIGN (LLD) -->
+  <section>
+    <h2><span class="section-num">4</span> Low-Level Design (LLD)</h2>
+    <p>
+      The Low-Level Design provides the concrete mechanics, schema definitions, mathematical invariants, and sequence protocols powering the application.
+    </p>
+
+    <!-- 4.1 INVENTORY RESERVATION & RACE CONDITION ELIMINATION -->
+    <h3>4.1 Concurrency Control & Double-Spend Elimination</h3>
+    <p>
+      The greatest vulnerability in e-commerce systems is the <em>Overselling Race Condition</em>. If 5 items remain and 20 users trigger checkout simultaneously, concurrent database reads will all see <code>stock = 5</code> and proceed to deduct, selling up to 20 units.
+    </p>
+
+    <div class="diagram-card avoid-break">
+      <!-- Sequence Diagram (SVG) -->
+      <svg viewBox="0 0 800 360" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+        <!-- Lifelines -->
+        <line x1="80" y1="40" x2="80" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+        <line x1="240" y1="40" x2="240" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+        <line x1="420" y1="40" x2="420" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+        <line x1="590" y1="40" x2="590" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+        <line x1="730" y1="40" x2="730" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+
+        <!-- Headers -->
+        <rect x="20" y="10" width="120" height="30" rx="5" fill="#0284c7"/>
+        <text x="80" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">User Client</text>
+
+        <rect x="180" y="10" width="120" height="30" rx="5" fill="#be185d"/>
+        <text x="240" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">API Server</text>
+
+        <rect x="360" y="10" width="120" height="30" rx="5" fill="#dc2626"/>
+        <text x="420" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">Redis (Lock)</text>
+
+        <rect x="530" y="10" width="120" height="30" rx="5" fill="#059669"/>
+        <text x="590" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">MongoDB (ACID)</text>
+
+        <rect x="680" y="10" width="100" height="30" rx="5" fill="#d97706"/>
+        <text x="730" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">Kafka (Bus)</text>
+
+        <!-- Steps -->
+        <!-- Step 1: POST /api/orders -->
+        <line x1="80" y1="70" x2="240" y2="70" stroke="#0284c7" stroke-width="2"/>
+        <polygon points="235,66 243,70 235,74" fill="#0284c7"/>
+        <text x="160" y="65" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#0369a1" text-anchor="middle">1. POST /api/orders</text>
+
+        <!-- Step 2: Acquire Redis Lock -->
+        <line x1="240" y1="100" x2="420" y2="100" stroke="#dc2626" stroke-width="2"/>
+        <polygon points="415,96 423,100 415,104" fill="#dc2626"/>
+        <text x="330" y="95" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#b91c1c" text-anchor="middle">2. SET lock:item:id NX PX 3000</text>
+
+        <line x1="420" y1="125" x2="240" y2="125" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3"/>
+        <text x="330" y="120" font-family="'JetBrains Mono', monospace" font-size="8" fill="#b91c1c" text-anchor="middle">Lock OK (Acquired)</text>
+
+        <!-- Step 3: MongoDB ACID Transaction -->
+        <line x1="240" y1="155" x2="590" y2="155" stroke="#059669" stroke-width="2"/>
+        <polygon points="585,151 593,155 585,159" fill="#059669"/>
+        <text x="415" y="150" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#047857" text-anchor="middle">3. session.startTransaction() &amp; check stock</text>
+
+        <line x1="240" y1="185" x2="590" y2="185" stroke="#059669" stroke-width="2"/>
+        <polygon points="585,181 593,185 585,189" fill="#059669"/>
+        <text x="415" y="180" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#047857" text-anchor="middle">4. stock -= qty &amp; Order.create()</text>
+
+        <line x1="590" y1="210" x2="240" y2="210" stroke="#059669" stroke-width="1.5" stroke-dasharray="3"/>
+        <text x="415" y="205" font-family="'JetBrains Mono', monospace" font-size="8" fill="#047857" text-anchor="middle">5. Commit Transaction (OK)</text>
+
+        <!-- Step 4: Release Redis Lock -->
+        <line x1="240" y1="240" x2="420" y2="240" stroke="#dc2626" stroke-width="2"/>
+        <polygon points="415,236 423,240 415,244" fill="#dc2626"/>
+        <text x="330" y="235" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#b91c1c" text-anchor="middle">6. DEL lock:item:id (Release)</text>
+
+        <!-- Step 5: Dispatch to Kafka -->
+        <line x1="240" y1="270" x2="730" y2="270" stroke="#d97706" stroke-width="2"/>
+        <polygon points="725,266 733,270 725,274" fill="#d97706"/>
+        <text x="485" y="265" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" fill="#b45309" text-anchor="middle">7. kafka.produce('order.created', payload)</text>
+
+        <!-- Step 6: 201 Response -->
+        <line x1="240" y1="305" x2="80" y2="305" stroke="#0284c7" stroke-width="2"/>
+        <polygon points="85,301 77,305 85,309" fill="#0284c7"/>
+        <text x="160" y="300" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">8. HTTP 201 Created (Order ID)</text>
+      </svg>
+      <div class="diagram-caption">Figure 4.1: Two-Tier Concurrency Protocol (Redis Distributed Lock + MongoDB ACID Transaction)</div>
+    </div>
+
+    <h3>4.2 Financial Integrity & Pricing Invariants</h3>
+    <p>
+      The order calculation engine strictly enforces financial consistency at the model schema level. Requests with client-tampered totals are immediately rejected.
+    </p>
+    <div class="callout callout-info">
+      <div class="callout-title">📐 The Sacred Financial Invariant Formula</div>
+      <code>totalPrice === itemsPrice + shippingPrice + codFee</code>
+      <br>
+      • <code>itemsPrice</code> = <code>Σ (item.price * item.quantity)</code>
+      <br>
+      • <code>shippingPrice</code> = <code>0</code> if <code>itemsPrice &gt;= FREE_SHIPPING_THRESHOLD</code>, else <code>₹49</code>
+      <br>
+      • <code>sellingPrice</code> must always be <code>&lt;= MRP</code> (Schema-enforced validation)
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 4.3 ORDER STATE MACHINE -->
+    <h3>4.3 Order & Payment State Machine</h3>
+    <p>
+      Orders strictly progress through a validated state transition graph. Invalid transitions (e.g., attempting to jump from <code>Pending</code> to <code>Delivered</code> without payment confirmation) throw fatal transition exceptions.
+    </p>
+
+    <div class="diagram-card avoid-break">
+      <svg viewBox="0 0 760 220" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+        <!-- States -->
+        <g transform="translate(30, 80)">
+          <rect width="110" height="50" rx="25" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+          <text x="55" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Pending</text>
+        </g>
+
+        <g transform="translate(220, 80)">
+          <rect width="110" height="50" rx="25" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+          <text x="55" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#1e40af" text-anchor="middle">Paid</text>
+        </g>
+
+        <g transform="translate(410, 80)">
+          <rect width="120" height="50" rx="25" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+          <text x="60" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Processing</text>
+        </g>
+
+        <g transform="translate(610, 80)">
+          <rect width="110" height="50" rx="25" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+          <text x="55" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#166534" text-anchor="middle">Delivered</text>
+        </g>
+
+        <!-- Cancelled State -->
+        <g transform="translate(220, 160)">
+          <rect width="110" height="40" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="55" y="25" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="#991b1b" text-anchor="middle">Cancelled</text>
+        </g>
+
+        <!-- Transitions -->
+        <line x1="140" y1="105" x2="220" y2="105" stroke="#2563eb" stroke-width="2"/>
+        <polygon points="215,101 223,105 215,109" fill="#2563eb"/>
+        <text x="180" y="98" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="600" fill="#1e40af" text-anchor="middle">Webhook</text>
+
+        <line x1="330" y1="105" x2="410" y2="105" stroke="#d97706" stroke-width="2"/>
+        <polygon points="405,101 413,105 405,109" fill="#d97706"/>
+        <text x="370" y="98" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="600" fill="#92400e" text-anchor="middle">Warehouse</text>
+
+        <line x1="530" y1="105" x2="610" y2="105" stroke="#16a34a" stroke-width="2"/>
+        <polygon points="605,101 613,105 605,109" fill="#16a34a"/>
+        <text x="570" y="98" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="600" fill="#166534" text-anchor="middle">Courier OTP</text>
+
+        <!-- Fallback to Cancelled -->
+        <line x1="85" y1="130" x2="220" y2="180" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3"/>
+        <polygon points="214,175 223,181 216,183" fill="#dc2626"/>
+      </svg>
+      <div class="diagram-caption">Figure 4.2: Strict Order Lifecycle Finite State Machine</div>
+    </div>
+
+    <h3>4.4 Kafka Event Schema & Consumer Topologies</h3>
+    <p>
+      Events in Kafka follow a standardized JSON envelope structure with unique correlation IDs for distributed tracing.
+    </p>
+    <pre><code>{
+  "eventId": "evt_9a8f4c2e-6d1a-4b92-8f1e",
+  "eventType": "order.created",
+  "correlationId": "corr_3e9d8f1a-b6c2-4091-a1e5",
+  "timestamp": "2026-11-07T10:41:12.616Z",
+  "aggregateId": "ord_672cb819e4a3",
+  "payload": {
+    "orderId": "672cb819e4a3",
+    "customer": {
+      "email": "customer@example.com",
+      "name": "Pooja Sharma",
+      "phone": "+919876543210"
+    },
+    "items": [
+      { "productId": "prod_foxtale_c_mask", "name": "Foxtale Cherry Mask", "qty": 1, "price": 551 }
+    ],
+    "financials": {
+      "itemsPrice": 551,
+      "shippingFee": 49,
+      "totalPrice": 600,
+      "paymentMethod": "UPI"
+    }
+  }
+}</code></pre>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 5: DEPLOYMENT & CONTAINER ARCHITECTURE -->
+  <section>
+    <h2><span class="section-num">5</span> Container Orchestration & Deployment Topologies</h2>
+    <p>
+      The system maintains 100% operational parity between local developer environments (managed via Docker Compose) and cloud production clusters (managed via Kubernetes).
+    </p>
+
+    <h3>5.1 Multi-Container Service Matrix</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Container Service</th>
+          <th>Base Image</th>
+          <th>Internal Port</th>
+          <th>External Exposure</th>
+          <th>Health Check Strategy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>shagunshopping-frontend</code></td>
+          <td><code>nginx:alpine</code></td>
+          <td><code>80</code></td>
+          <td><code>3000</code></td>
+          <td>HTTP GET <code>/</code> (Nginx worker)</td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-backend</code></td>
+          <td><code>node:20-alpine</code></td>
+          <td><code>5001</code></td>
+          <td><code>5001</code></td>
+          <td><code>curl -f http://localhost:5001/api/health</code></td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-cms</code></td>
+          <td><code>node:20-alpine</code></td>
+          <td><code>1337</code></td>
+          <td><code>1337</code></td>
+          <td>HTTP GET <code>/_health</code></td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-mongo</code></td>
+          <td><code>mongo:7.0</code></td>
+          <td><code>27017</code></td>
+          <td><code>27017</code></td>
+          <td><code>mongosh --eval "db.adminCommand('ping')"</code></td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-redis</code></td>
+          <td><code>redis:7.2-alpine</code></td>
+          <td><code>6379</code></td>
+          <td><code>6379</code></td>
+          <td><code>redis-cli ping</code></td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-kafka</code></td>
+          <td><code>apache/kafka:3.7.0</code></td>
+          <td><code>9092</code></td>
+          <td><code>9092, 9094</code></td>
+          <td>Kafka broker controller quorum probe</td>
+        </tr>
+        <tr>
+          <td><code>shagunshopping-kafka-ui</code></td>
+          <td><code>provectuslabs/kafka-ui</code></td>
+          <td><code>8080</code></td>
+          <td><code>8080</code></td>
+          <td>Web console HTTP 200 OK</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 Kubernetes Production Architecture Specs</h3>
+    <div class="card-grid">
+      <div class="feature-card">
+        <h4>☸️ Horizontal Pod Autoscaler (HPA)</h4>
+        <p>Target metrics set to <strong>CPU 70%</strong> and <strong>Memory 80%</strong>. Automatically provisions pod replicas from a baseline of 2 up to 10 during high-traffic events.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🛡️ Pod Disruption Budgets (PDB)</h4>
+        <p>Configured with <code>minAvailable: 1</code> ensuring maintenance nodes can be upgraded or drained without service interruption.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🩺 Zero-Downtime Probes</h4>
+        <p><code>readinessProbe</code> delays traffic routing until DB and Redis connections authenticate; <code>livenessProbe</code> restarts deadlocked containers.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🔐 Secret Management</h4>
+        <p>Decoupled K8s Secrets inject sensitive keys (JWT secrets, MongoDB Atlas connection strings, Razorpay keys) directly as runtime environment variables.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 6: RESILIENCE, SECURITY & DISASTER RECOVERY -->
+  <section>
+    <h2><span class="section-num">6</span> Resilience, Security & Disaster Recovery</h2>
+
+    <h3>6.1 Defense-in-Depth Security Matrix</h3>
+    <ul>
+      <li><strong>Cloudflare Turnstile Verification:</strong> Protects checkout and authentication endpoints from automated bot spam without visual user friction.</li>
+      <li><strong>NoSQL Injection Prevention:</strong> <code>express-mongo-sanitize</code> strips out prohibited characters (e.g., <code>$</code>, <code>.</code>) from request bodies and query parameters.</li>
+      <li><strong>HTTP Security Hardening:</strong> Helmet sets strict <code>Content-Security-Policy</code>, <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: SAMEORIGIN</code>, and <code>Strict-Transport-Security</code>.</li>
+      <li><strong>Cryptographic Signature Verification:</strong> Razorpay webhook payloads are authenticated using <code>crypto.createHmac('sha256', secret)</code> before updating order payment states.</li>
+      <li><strong>Unprivileged Container Execution:</strong> Backend runs under unprivileged <code>USER node</code> (UID 1000) inside containers to prevent host root-escalation attacks.</li>
+    </ul>
+
+    <h3>6.2 Disaster Recovery & High-Availability Targets</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Failure Scenario</th>
+          <th>Automated Recovery Strategy</th>
+          <th>Data Loss (RPO)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Backend API Pod</strong></td>
+          <td>Unhandled fatal error / OOM</td>
+          <td>Kubernetes kubelet restarts pod in &lt; 5 seconds</td>
+          <td>0 (Stateless)</td>
+        </tr>
+        <tr>
+          <td><strong>Redis Cluster</strong></td>
+          <td>Node crash / Cache purge</td>
+          <td>Degrades to direct MongoDB query with alert; Redlock fallback</td>
+          <td>0 (Transient cache)</td>
+        </tr>
+        <tr>
+          <td><strong>Apache Kafka</strong></td>
+          <td>Consumer worker offline</td>
+          <td>Events retained on disk; worker resumes from last committed offset</td>
+          <td>0 (Durable log)</td>
+        </tr>
+        <tr>
+          <td><strong>Strapi Headless CMS</strong></td>
+          <td>CMS server unavailable</td>
+          <td>Storefront falls back seamlessly to <code>DEFAULT_BANNERS</code> &amp; static guides</td>
+          <td>0 (Zero UI breakage)</td>
+        </tr>
+        <tr>
+          <td><strong>MongoDB Database</strong></td>
+          <td>Primary node hardware failure</td>
+          <td>Atlas automated replica set election switches to Secondary in &lt; 12s</td>
+          <td>0 (Write Concern Majority)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-success" style="margin-top: 30px;">
+      <div class="callout-title">✅ Architecture Sign-Off & Verification Status</div>
+      All 7 Docker container services, MongoDB ACID transaction rules, Redis distributed locking protocols, Kafka event bus configurations, and headless CMS integrations have been verified and validated in the active production repository.
+    </div>
+  </section>
+
+</body>
+</html>
