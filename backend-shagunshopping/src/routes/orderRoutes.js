@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import validate from '../middleware/validate.js';
 import { protect, admin } from '../middleware/auth.js';
 import { ORDER_STATUSES } from '../models/Order.js';
+import { reconcilePendingPayments } from '../services/reconciliationService.js';
 import {
   createOrder,
   myOrders,
@@ -35,6 +36,14 @@ router.post(
 );
 
 router.get('/mine', protect, myOrders);
+router.post('/reconcile', protect, admin, async (req, res, next) => {
+  try {
+    const result = await reconcilePendingPayments();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
 router.get('/stats/summary', protect, admin, orderStats);
 router.get('/', protect, admin, adminListOrders);
 router.get('/:id', protect, getOrder);

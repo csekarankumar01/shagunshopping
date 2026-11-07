@@ -3,6 +3,8 @@ import Product from '../models/Product.js';
 import { clearProductCache } from '../utils/cache.js';
 import { computeTotals, getShippingRules } from '../utils/pricing.js';
 import { getRazorpay } from './paymentController.js';
+import { InventoryLockService } from '../services/inventoryLockService.js';
+import { publishDomainEvent, TOPICS } from '../events/eventProducer.js';
 import {
   sendOrderConfirmationEmail,
   sendOwnerNewOrderEmail,
@@ -103,7 +105,15 @@ export const createOrder = async (req, res, next) => {
       return res.status(201).json({ order });
     }
 
-    // ---- Razorpay: create an unpaid order + a Razorpay order ----
+    // ---- Razorpay: reserve stock atomically in Redis & create pending order ----
+    const tempOrderId = `${req.user._id}-${Date.now()}`;
+    const reservation = await InventoryLockService.reserveInventory(tempOrderId, orderItems, 600); // 10 min hold
+    if (!reservation.success) {
+      return res.status(409).json({
+        message: reservation.reason || 'One of the items in your cart was just reserved by another customer. Please try again shortly.',
+      });
+    }
+
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -111,6 +121,17 @@ export const createOrder = async (req, res, next) => {
       paymentMethod: 'razorpay',
       ...totals,
       status: 'pending_payment',
+    });
+
+    // Re-link the reservation key from temp ID to the permanent order ID
+    await InventoryLockService.reserveInventory(order._id.toString(), orderItems, 600);
+    await InventoryLockService.releaseInventory(tempOrderId, orderItems);
+
+    await publishDomainEvent(TOPICS.ORDER_EVENTS, 'ORDER_CREATED', order._id, {
+      orderId: order._id,
+      userId: req.user._id,
+      totalPrice: totals.totalPrice,
+      items: orderItems,
     });
 
     const razorpay = getRazorpay();
@@ -177,6 +198,14 @@ export const cancelOrder = async (req, res, next) => {
     // Stock was only reserved for COD orders and paid Razorpay orders
     const stockWasReserved = order.paymentMethod === 'cod' || order.isPaid;
     if (stockWasReserved) await restoreStock(order.orderItems);
+
+    // Also release any active Redis soft-locks for pending orders
+    await InventoryLockService.releaseInventory(order._id.toString(), order.orderItems);
+
+    await publishDomainEvent(TOPICS.ORDER_EVENTS, 'ORDER_CANCELLED', order._id, {
+      orderId: order._id,
+      items: order.orderItems,
+    });
 
     order.status = 'cancelled';
     await order.save();

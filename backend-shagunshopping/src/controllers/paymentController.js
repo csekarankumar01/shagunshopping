@@ -3,6 +3,8 @@ import Razorpay from 'razorpay';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import { InventoryLockService } from '../services/inventoryLockService.js';
+import { publishDomainEvent, TOPICS } from '../events/eventProducer.js';
 import { sendOrderConfirmationEmail, sendOwnerNewOrderEmail, sendOversellAlert } from '../utils/mailer.js';
 
 let client = null;
@@ -39,7 +41,7 @@ const timingSafeMatch = (a, b) => {
 // back the already-finalized order. The winner then decrements stock (with
 // $gte guards) and sends the emails. No locks, no flags — Mongo's own
 // document atomicity does the work.
-const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature = '') => {
+export const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature = '') => {
   const claimed = await Order.findOneAndUpdate(
     { _id: orderId, status: 'pending_payment', isPaid: false },
     {
@@ -59,20 +61,16 @@ const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature =
     return { order: await Order.findById(orderId), alreadyProcessed: true };
   }
 
-  // Decrement stock with guards; count how many actually applied.
-  const ops = claimed.orderItems.map((it) => ({
-    updateOne: {
-      filter: { _id: it.product, stock: { $gte: it.qty } },
-      update: { $inc: { stock: -it.qty } },
-    },
-  }));
-  const result = await Product.bulkWrite(ops);
-  if ((result.modifiedCount ?? 0) < claimed.orderItems.length) {
-    // Extremely rare: stock ran out between order creation and payment.
-    // The customer HAS paid, so the order stays paid — alert the owner to
-    // source the item, arrange a substitute, or refund. Never fail silently.
-    sendOversellAlert(claimed); // fire and forget
-  }
+  // Commit the Redis inventory reservation & persist MongoDB deduction
+  await InventoryLockService.commitInventory(claimed._id.toString(), claimed.orderItems);
+
+  // Emit event to Kafka
+  await publishDomainEvent(TOPICS.PAYMENT_EVENTS, 'PAYMENT_CAPTURED', claimed._id, {
+    orderId: claimed._id,
+    razorpayPaymentId,
+    totalPrice: claimed.totalPrice,
+    items: claimed.orderItems,
+  });
 
   const buyer = await User.findById(claimed.user).select('name email');
   if (buyer) {

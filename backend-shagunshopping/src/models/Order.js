@@ -55,6 +55,9 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ 'paymentResult.razorpayOrderId': 1 }, { sparse: true });
+orderSchema.index({ 'paymentResult.razorpayPaymentId': 1 }, { sparse: true });
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;
