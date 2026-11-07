@@ -14,3 +14,4 @@ COPY --from=build /opt/app ./
 ENV NODE_ENV=production
 EXPOSE 1337
 CMD ["npm", "run", "start"]
+

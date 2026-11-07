@@ -132,3 +132,4 @@ volumes:
   uat_redis_data:
   uat_kafka_data:
   uat_cms_data:
+

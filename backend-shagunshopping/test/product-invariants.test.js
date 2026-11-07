@@ -66,3 +66,4 @@ describe('Product Schema & Stock Invariants', () => {
     assert.ok(error.errors.category, 'Expected category error');
   });
 });
+

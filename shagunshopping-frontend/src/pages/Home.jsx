@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Banknote, Truck, ArrowRight } from 'lucide-react';
+import { BadgeCheck, Banknote, Truck, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../lib/api';
+import { getPromotionalBanners } from '../services/cms';
 import {
   getCachedData,
   setCachedData,
@@ -27,6 +28,13 @@ const Home = () => {
     const cached = getCachedData('products:featured_home');
     return cached?.products || INITIAL_FEATURED_PRODUCTS;
   });
+  const [banners, setBanners] = useState([]);
+
+  useEffect(() => {
+    getPromotionalBanners().then((res) => {
+      if (res && res.length) setBanners(res);
+    });
+  }, []);
 
   useEffect(() => {
     fetchSWR(
@@ -75,6 +83,47 @@ const Home = () => {
       </section>
 
       <BrandMarquee />
+
+      {/* Dynamic Strapi CMS Promotional Drops */}
+      {banners.length > 0 && (
+        <section className="container-page pt-12 pb-4">
+          <div className="grid gap-6 md:grid-cols-2">
+            {banners.slice(0, 2).map((banner) => (
+              <Link
+                key={banner.id}
+                to={banner.link || '/shop'}
+                className="group relative overflow-hidden rounded-3xl bg-ink p-8 text-white shadow-sm transition-all duration-300 hover:shadow-xl"
+              >
+                <img
+                  src={banner.imageUrl}
+                  alt={banner.title}
+                  className="absolute inset-0 h-full w-full object-cover opacity-45 transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/40 to-transparent" />
+                <div className="relative z-10 flex h-full min-h-[180px] flex-col justify-end">
+                  {banner.badge && (
+                    <span className="mb-2.5 inline-flex items-center gap-1.5 self-start rounded-full bg-mulberry/90 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-sm">
+                      <Sparkles size={12} />
+                      {banner.badge}
+                    </span>
+                  )}
+                  <h3 className="font-display text-2xl font-black uppercase leading-tight tracking-tight sm:text-3xl">
+                    {banner.title}
+                  </h3>
+                  {banner.subtitle && (
+                    <p className="mt-1.5 text-sm text-porcelain/90 line-clamp-1">
+                      {banner.subtitle}
+                    </p>
+                  )}
+                  <div className="mt-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-300 transition-transform group-hover:translate-x-1">
+                    Shop collection <ArrowRight size={14} />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured products */}
       <section className="container-page pt-14 pb-16">

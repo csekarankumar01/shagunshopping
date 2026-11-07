@@ -2,6 +2,7 @@
   "name": "shagunshopping-cms",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "description": "ShagunShopping Headless CMS powered by Strapi",
   "scripts": {
     "develop": "strapi develop",
@@ -21,3 +22,4 @@
   "node": ">=18.0.0 <=20.x.x",
   "license": "MIT"
 }
+

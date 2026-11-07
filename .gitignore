@@ -9,3 +9,8 @@ dist/
 # Uploaded product photos (runtime data)
 server/uploads/*
 !server/uploads/.gitkeep
+
+# CMS runtime data
+.tmp/
+*.db
+

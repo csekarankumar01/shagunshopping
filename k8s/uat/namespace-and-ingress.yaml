@@ -61,3 +61,4 @@ spec:
                 name: shagunshopping-backend
                 port:
                   number: 5001
+

@@ -89,3 +89,4 @@ export const getEditorialArticles = async () => {
     return DEFAULT_ARTICLES;
   }
 };
+

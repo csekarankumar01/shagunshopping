@@ -49,3 +49,4 @@ describe('Observability & Correlation Middleware', () => {
     assert.ok(metrics.requestsByStatus['2xx'] !== undefined);
   });
 });
+
