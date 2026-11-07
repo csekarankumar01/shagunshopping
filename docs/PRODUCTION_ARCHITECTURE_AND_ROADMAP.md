@@ -41,6 +41,12 @@ In high-traffic e-commerce (such as during festive sales or Instagram drop campa
    - The inventory consumer commits the reservation in Redis and decrements the permanent MongoDB record.
 3. **Phase 3: Automatic TTL Compensating Release:**
    - If Customer A abandons the payment or cancels, the Redis reservation key expires after 10 minutes, returning the stock to the available pool automatically.
+4. **Phase 4: Multi-Document ACID Transactions & Schema Invariants (Zero-Error Database):**
+   - **MongoDB ACID Transactions (`withTransaction`):** Order creation, payment capture, stock decrements, and order cancellations execute inside MongoDB replica-set sessions with `writeConcern: { w: 'majority' }`. If any write or network operation fails, MongoDB automatically rolls back all mutations.
+   - **Order Status State Machine:** Order progression (`pending_payment` ➔ `processing` ➔ `shipped` ➔ `delivered`) is enforced at the database schema level, preventing illegal state skips or invalid cancellations.
+   - **Optimistic Concurrency Control (OCC):** Product documents utilize Mongoose OCC (`optimisticConcurrency: true`) leveraging internal document versioning (`__v`) to prevent concurrent lost updates.
+   - **Connection Pool Tuning:** Persistent pre-warmed sockets (`minPoolSize=10`, `maxPoolSize=50`, `serverSelectionTimeoutMS=5000`) prevent connection exhaustion and latency spikes during flash sales.
+   - **Sparse Unique Idempotency Indexing:** `idempotencyKey` and `paymentResult.razorpayPaymentId` guarantee database-level uniqueness, preventing duplicate payment crediting and double orders.
 
 ---
 
