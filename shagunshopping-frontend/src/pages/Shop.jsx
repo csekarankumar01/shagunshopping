@@ -226,7 +226,7 @@ const Shop = () => {
             />
           ) : (
             <>
-              <div className={`grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 transition-opacity duration-200 ${isUpdating ? 'opacity-60' : 'opacity-100'}`}>
+              <div className={`grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 items-stretch transition-opacity duration-200 ${isUpdating ? 'opacity-60' : 'opacity-100'}`}>
                 {data.products.map((p) => (
                   <ProductCard key={p._id} product={p} />
                 ))}

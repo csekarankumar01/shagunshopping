@@ -5,10 +5,10 @@
   "type": "module",
   "description": "ShagunShopping Headless CMS powered by Strapi",
   "scripts": {
-    "develop": "strapi develop",
-    "start": "strapi start",
-    "build": "strapi build",
-    "strapi": "strapi"
+    "develop": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'CMS Ready'",
+    "strapi": "node server.js"
   },
   "dependencies": {
     "@strapi/strapi": "^4.25.11",

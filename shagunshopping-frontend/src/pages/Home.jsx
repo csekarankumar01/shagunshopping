@@ -153,9 +153,9 @@ const Home = () => {
             </p>
           </div>
         ) : (
-          <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden sm:gap-6 md:grid md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden sm:gap-6 md:grid md:grid-cols-2 lg:grid-cols-4 items-stretch">
             {featured.map((p) => (
-              <div key={p._id} className="min-w-[80vw] snap-center sm:min-w-[300px] md:min-w-0">
+              <div key={p._id} className="min-w-[80vw] snap-center sm:min-w-[300px] md:min-w-0 h-full flex flex-col">
                 <ProductCard product={p} />
               </div>
             ))}
