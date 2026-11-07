@@ -1,6 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +18,17 @@ if (!fs.existsSync(DATA_DIR)) {
 
 // Initial default CMS dataset
 const DEFAULT_DATA = {
+  adminUsers: [
+    {
+      id: 1,
+      email: 'admin@shagunshopping.com',
+      passwordHash: crypto.createHash('sha256').update('Admin@12345').digest('hex'),
+      name: 'Karan Kumar',
+      role: 'Super Admin',
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  sessions: {},
   banners: [
     {
       id: 1,
@@ -59,7 +71,10 @@ const DEFAULT_DATA = {
 const loadData = () => {
   try {
     if (fs.existsSync(DB_FILE)) {
-      return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      if (!data.adminUsers) data.adminUsers = DEFAULT_DATA.adminUsers;
+      if (!data.sessions) data.sessions = {};
+      return data;
     }
   } catch (err) {
     console.error('[CMS] Error reading DB file:', err.message);
@@ -78,21 +93,149 @@ const saveData = (data) => {
 
 let db = loadData();
 
-// Build Admin Dashboard HTML
-const renderAdminDashboard = () => {
+// Helper to parse cookies
+const parseCookies = (req) => {
+  const list = {};
+  const rc = req.headers.cookie;
+  if (rc) {
+    rc.split(';').forEach((cookie) => {
+      const parts = cookie.split('=');
+      list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+  }
+  return list;
+};
+
+// Helper to check admin session
+const getActiveAdmin = (req) => {
+  const cookies = parseCookies(req);
+  const token = cookies.strapi_session;
+  if (!token || !db.sessions[token]) return null;
+  const session = db.sessions[token];
+  if (Date.now() > session.expires) {
+    delete db.sessions[token];
+    saveData(db);
+    return null;
+  }
+  return db.adminUsers.find((u) => u.id === session.userId) || null;
+};
+
+// Render Login Page
+const renderLoginPage = (errorMsg = '') => {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Strapi — Welcome Back</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+  <!-- Glowing ambient lights -->
+  <div class="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-purple-500/40">
+        S
+      </div>
+      <h1 class="text-2xl font-black text-white tracking-tight">Welcome back!</h1>
+      <p class="text-xs text-slate-400 mt-1">Log in to your Strapi account for Shagun Shopping</p>
+    </div>
+
+    ${
+      errorMsg
+        ? `<div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            ${errorMsg}
+          </div>`
+        : ''
+    }
+
+    <!-- Form -->
+    <form method="POST" action="/admin/login" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email Address</label>
+        <input 
+          type="email" 
+          name="email" 
+          required 
+          value="admin@shagunshopping.com"
+          placeholder="admin@shagunshopping.com" 
+          class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition"
+        />
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Password</label>
+        </div>
+        <input 
+          type="password" 
+          name="password" 
+          required 
+          value="Admin@12345"
+          placeholder="••••••••••••" 
+          class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition"
+        />
+      </div>
+
+      <div class="pt-2">
+        <button 
+          type="submit" 
+          class="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl transition duration-200 shadow-lg shadow-purple-600/30"
+        >
+          Log in to Strapi CMS
+        </button>
+      </div>
+
+      <div class="mt-6 p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-[11px] text-slate-400 text-center">
+        <span class="text-purple-400 font-bold">Default credentials prefilled:</span><br/>
+        Email: <code class="text-slate-200 font-mono">admin@shagunshopping.com</code><br/>
+        Password: <code class="text-slate-200 font-mono">Admin@12345</code>
+      </div>
+    </form>
+  </div>
+</body>
+</html>`;
+};
+
+// Render Authenticated Admin Dashboard
+const renderAdminDashboard = (admin) => {
   const bannerRows = db.banners
     .map(
       (b) => `
       <tr class="border-b border-gray-100 hover:bg-purple-50/40 transition">
-        <td class="p-4 font-semibold text-gray-800">${b.title}</td>
+        <td class="p-4">
+          <div class="flex items-center gap-3">
+            <img src="${b.imageUrl}" class="w-12 h-12 rounded-lg object-cover bg-slate-100" />
+            <div>
+              <p class="font-bold text-gray-900 text-sm">${b.title}</p>
+              <p class="text-xs text-gray-500 line-clamp-1">${b.subtitle || '—'}</p>
+            </div>
+          </div>
+        </td>
         <td class="p-4"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-700">${b.badge || 'PROMO'}</span></td>
-        <td class="p-4 text-sm text-gray-600">${b.subtitle || '—'}</td>
         <td class="p-4 text-xs font-mono text-gray-500">${b.link}</td>
         <td class="p-4">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full ${b.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">
-            <span class="w-1.5 h-1.5 rounded-full ${b.isActive ? 'bg-emerald-500' : 'bg-gray-400'}"></span>
-            ${b.isActive ? 'Published' : 'Draft'}
-          </span>
+          <form method="POST" action="/admin/banners/toggle" class="inline">
+            <input type="hidden" name="id" value="${b.id}" />
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition ${b.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}">
+              <span class="w-1.5 h-1.5 rounded-full ${b.isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+              ${b.isActive ? 'Live on Store' : 'Draft / Paused'}
+            </button>
+          </form>
+        </td>
+        <td class="p-4 text-right">
+          <form method="POST" action="/admin/banners/delete" class="inline" onsubmit="return confirm('Remove this banner?');">
+            <input type="hidden" name="id" value="${b.id}" />
+            <button type="submit" class="text-xs font-bold text-rose-600 hover:text-rose-800 transition">Delete</button>
+          </form>
         </td>
       </tr>`
     )
@@ -102,9 +245,12 @@ const renderAdminDashboard = () => {
     .map(
       (a) => `
       <tr class="border-b border-gray-100 hover:bg-purple-50/40 transition">
-        <td class="p-4 font-semibold text-gray-800">${a.title}</td>
-        <td class="p-4 text-xs font-bold text-purple-600 uppercase">${a.category}</td>
-        <td class="p-4 text-sm text-gray-600">${a.summary}</td>
+        <td class="p-4">
+          <p class="font-bold text-gray-900 text-sm">${a.title}</p>
+          <p class="text-xs text-gray-500 line-clamp-1">${a.summary}</p>
+        </td>
+        <td class="p-4"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-700 uppercase">${a.category}</span></td>
+        <td class="p-4 text-xs text-gray-500">${a.author}</td>
         <td class="p-4 text-xs text-gray-500">${a.readingTimeMinutes} min read</td>
       </tr>`
     )
@@ -119,16 +265,14 @@ const renderAdminDashboard = () => {
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-  </style>
+  <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex">
   <!-- Sidebar -->
   <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6">
     <div>
       <div class="flex items-center gap-3 mb-8">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-black text-lg text-white shadow-lg shadow-purple-500/30">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-purple-500/30">
           S
         </div>
         <div>
@@ -137,7 +281,7 @@ const renderAdminDashboard = () => {
         </div>
       </div>
       
-      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-3">Content Manager</p>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-3">Content Types</p>
       <nav class="space-y-1">
         <a href="#banners" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-purple-600 text-white font-medium text-sm transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -149,12 +293,22 @@ const renderAdminDashboard = () => {
         </a>
       </nav>
     </div>
-    <div class="pt-6 border-t border-slate-800 text-xs text-slate-400">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="font-semibold text-emerald-400">REST API Ready</span>
+
+    <!-- User Profile & Logout -->
+    <div class="pt-6 border-t border-slate-800">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-xs font-bold text-white">${admin.name}</p>
+          <p class="text-[11px] text-purple-400 font-mono">${admin.role}</p>
+        </div>
+        <a href="/admin/logout" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-200 transition" title="Log out">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </a>
       </div>
-      Port: 1337 • Status: Live
+      <div class="flex items-center gap-2 text-[11px] text-emerald-400 font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        REST API Connected (1337)
+      </div>
     </div>
   </aside>
 
@@ -162,33 +316,65 @@ const renderAdminDashboard = () => {
   <main class="flex-1 p-10 overflow-y-auto">
     <header class="flex items-center justify-between pb-8 border-b border-slate-200">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900">Content Manager</h2>
-        <p class="text-sm text-slate-500">Manage promotional drops and editorial articles served to the Shagun storefront.</p>
+        <h2 class="text-2xl font-bold text-slate-900">Promotional Drops & Content</h2>
+        <p class="text-sm text-slate-500">Add or toggle promotional marketing hero drops that update the storefront live.</p>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/api/banners" target="_blank" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-sm">
-          Inspect /api/banners JSON ↗
+        <a href="http://localhost:5173" target="_blank" class="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm flex items-center gap-2">
+          Open Storefront (5173) ↗
+        </a>
+        <a href="/api/banners" target="_blank" class="px-4 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-sm">
+          Inspect API JSON ↗
         </a>
       </div>
     </header>
 
-    <!-- Banners Section -->
-    <section id="banners" class="mt-8">
-      <div class="flex items-center justify-between mb-4">
+    <!-- Create Banner Form -->
+    <div class="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Publish New Promotional Drop
+      </h3>
+      <form method="POST" action="/admin/banners/create" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Promotional Hero Banners</h3>
-          <p class="text-xs text-slate-500">Live banners rendered on the storefront homepage.</p>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Banner Title</label>
+          <input type="text" name="title" required placeholder="Diwali Special Drop" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
         </div>
-      </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Subtitle / Offer</label>
+          <input type="text" name="subtitle" placeholder="Flat 25% Off Luxury Fragrances" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Badge Text</label>
+          <input type="text" name="badge" placeholder="LIMITED EDITION" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Target Link</label>
+          <input type="text" name="link" value="/shop?category=Fragrance" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+        </div>
+        <div class="md:col-span-2 flex gap-3 items-end">
+          <div class="flex-1">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Image URL</label>
+            <input type="url" name="imageUrl" required value="https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1600&auto=format&fit=crop&q=80" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500" />
+          </div>
+          <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap">
+            + Publish Banner
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Banners Table -->
+    <section id="banners" class="mt-8">
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200">
-              <th class="p-4">Title</th>
+              <th class="p-4">Drop Info</th>
               <th class="p-4">Badge</th>
-              <th class="p-4">Subtitle</th>
               <th class="p-4">Target Link</th>
-              <th class="p-4">State</th>
+              <th class="p-4">Visibility</th>
+              <th class="p-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -203,16 +389,16 @@ const renderAdminDashboard = () => {
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="text-lg font-bold text-slate-900">Beauty & Skincare Editorial</h3>
-          <p class="text-xs text-slate-500">Curated beauty routines and articles.</p>
+          <p class="text-xs text-slate-500">Articles fetched via Strapi REST API.</p>
         </div>
       </div>
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200">
-              <th class="p-4">Title</th>
+              <th class="p-4">Article</th>
               <th class="p-4">Category</th>
-              <th class="p-4">Summary</th>
+              <th class="p-4">Author</th>
               <th class="p-4">Reading Time</th>
             </tr>
           </thead>
@@ -227,8 +413,26 @@ const renderAdminDashboard = () => {
 </html>`;
 };
 
+// Helper to parse POST urlencoded bodies
+const parseBody = (req) => {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      const params = new URLSearchParams(body);
+      const result = {};
+      for (const [key, val] of params.entries()) {
+        result[key] = val;
+      }
+      resolve(result);
+    });
+  });
+};
+
 // Create the HTTP server
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -243,36 +447,151 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
-  // Root or Admin Dashboard
-  if (pathname === '/' || pathname === '/admin' || pathname.startsWith('/admin/')) {
+  // Login Page GET
+  if (pathname === '/admin/login' && req.method === 'GET') {
+    const admin = getActiveAdmin(req);
+    if (admin) {
+      res.writeHead(302, { Location: '/admin' });
+      res.end();
+      return;
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(renderAdminDashboard());
+    res.end(renderLoginPage());
+    return;
+  }
+
+  // Login POST
+  if (pathname === '/admin/login' && req.method === 'POST') {
+    const { email, password } = await parseBody(req);
+    const passwordHash = crypto.createHash('sha256').update(password || '').digest('hex');
+
+    const admin = db.adminUsers.find(
+      (u) => u.email.toLowerCase() === (email || '').toLowerCase() && u.passwordHash === passwordHash
+    );
+
+    if (admin) {
+      const token = crypto.randomUUID();
+      db.sessions[token] = {
+        userId: admin.id,
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+      };
+      saveData(db);
+
+      res.writeHead(302, {
+        'Set-Cookie': `strapi_session=${token}; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=604800`,
+        Location: '/admin',
+      });
+      res.end();
+      return;
+    }
+
+    res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(renderLoginPage('Invalid email or password. Please try again.'));
+    return;
+  }
+
+  // Logout GET
+  if (pathname === '/admin/logout') {
+    const cookies = parseCookies(req);
+    const token = cookies.strapi_session;
+    if (token) {
+      delete db.sessions[token];
+      saveData(db);
+    }
+    res.writeHead(302, {
+      'Set-Cookie': `strapi_session=; Path=/admin; HttpOnly; Max-Age=0`,
+      Location: '/admin/login',
+    });
+    res.end();
+    return;
+  }
+
+  // Admin Dashboard routes (Protected)
+  if (pathname === '/' || pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const admin = getActiveAdmin(req);
+    if (!admin) {
+      res.writeHead(302, { Location: '/admin/login' });
+      res.end();
+      return;
+    }
+
+    // Action: Create Banner POST
+    if (pathname === '/admin/banners/create' && req.method === 'POST') {
+      const data = await parseBody(req);
+      if (data.title && data.imageUrl) {
+        const newBanner = {
+          id: Date.now(),
+          title: data.title,
+          subtitle: data.subtitle || '',
+          badge: data.badge || 'PROMO',
+          link: data.link || '/shop',
+          imageUrl: data.imageUrl,
+          isActive: true,
+          displayOrder: db.banners.length + 1,
+          createdAt: new Date().toISOString(),
+        };
+        db.banners.unshift(newBanner);
+        saveData(db);
+      }
+      res.writeHead(302, { Location: '/admin' });
+      res.end();
+      return;
+    }
+
+    // Action: Toggle Banner Visibility POST
+    if (pathname === '/admin/banners/toggle' && req.method === 'POST') {
+      const data = await parseBody(req);
+      const banner = db.banners.find((b) => String(b.id) === String(data.id));
+      if (banner) {
+        banner.isActive = !banner.isActive;
+        saveData(db);
+      }
+      res.writeHead(302, { Location: '/admin' });
+      res.end();
+      return;
+    }
+
+    // Action: Delete Banner POST
+    if (pathname === '/admin/banners/delete' && req.method === 'POST') {
+      const data = await parseBody(req);
+      db.banners = db.banners.filter((b) => String(b.id) !== String(data.id));
+      saveData(db);
+      res.writeHead(302, { Location: '/admin' });
+      res.end();
+      return;
+    }
+
+    // Render Admin
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(renderAdminDashboard(admin));
     return;
   }
 
   // REST API: /api/banners (Strapi format)
   if (pathname === '/api/banners') {
     const responsePayload = {
-      data: db.banners.map((b) => ({
-        id: b.id,
-        attributes: {
-          title: b.title,
-          subtitle: b.subtitle,
-          badge: b.badge,
-          link: b.link,
-          imageUrl: b.imageUrl,
-          isActive: b.isActive,
-          displayOrder: b.displayOrder,
-          createdAt: b.createdAt,
-          updatedAt: b.createdAt,
-        },
-      })),
+      data: db.banners
+        .filter((b) => b.isActive)
+        .map((b) => ({
+          id: b.id,
+          attributes: {
+            title: b.title,
+            subtitle: b.subtitle,
+            badge: b.badge,
+            link: b.link,
+            imageUrl: b.imageUrl,
+            isActive: b.isActive,
+            displayOrder: b.displayOrder,
+            createdAt: b.createdAt,
+            updatedAt: b.createdAt,
+          },
+        })),
       meta: {
         pagination: {
           page: 1,
           pageSize: 25,
           pageCount: 1,
-          total: db.banners.length,
+          total: db.banners.filter((b) => b.isActive).length,
         },
       },
     };
@@ -328,7 +647,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`[Strapi Headless CMS] Running at http://localhost:${PORT}`);
-  console.log(`[Strapi Headless CMS] Admin Dashboard: http://localhost:${PORT}/admin`);
+  console.log(`[Strapi Headless CMS] Admin Login: http://localhost:${PORT}/admin/login`);
   console.log(`[Strapi Headless CMS] REST API: http://localhost:${PORT}/api/banners`);
 });
-
